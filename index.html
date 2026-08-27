@@ -1,609 +1,966 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SF to Seattle Road Trip — Sep 2–7, 2026</title>
-  <style>
-    :root {
-      --green: #2d6a4f;
-      --green-light: #d8f3dc;
-      --red: #c1121f;
-      --red-light: #ffe5e5;
-      --yellow: #e9c46a;
-      --yellow-light: #fff9e6;
-      --blue: #1d3557;
-      --blue-light: #e8f4fd;
-      --gray: #6c757d;
-      --text: #212529;
-      --bg: #f8f9fa;
-      --card: #ffffff;
-      --border: #dee2e6;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SF → Seattle Road Trip · Sep 2–7, 2026</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<style>
+:root{
+  --bg:#faf9f6;--card:#fff;--text:#1a1a2e;--text2:#5a5a7a;--textL:#8888a4;
+  --accent:#2d5be3;--accentL:#e8eeff;--accentD:#1a3da8;
+  --green:#0d9a5f;--greenL:#e6f7f0;
+  --red:#dc3545;--redL:#fde8ea;
+  --gold:#d4920b;--goldL:#fef8e8;
+  --border:#e8e8ee;
+  --sh:0 1px 3px rgba(0,0,0,.06),0 4px 12px rgba(0,0,0,.04);
+  --r:16px;
+  --d1:#e04b2c;--d2:#e07a2c;--d3:#2c9e4b;--d4:#2c6be0;--d5:#9b2ce0;--d6:#e02c7a;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.75;-webkit-font-smoothing:antialiased;max-width:680px;margin:0 auto}
 
-    /* HERO */
-    .hero {
-      background: linear-gradient(135deg, #1a3c2e 0%, #2d6a4f 50%, #1d3557 100%);
-      color: #fff;
-      padding: 60px 24px 48px;
-      text-align: center;
-    }
-    .hero h1 { font-size: 2.4rem; font-weight: 800; letter-spacing: -0.5px; }
-    .hero .subtitle { font-size: 1.1rem; margin-top: 10px; opacity: 0.85; }
-    .hero .route { margin-top: 18px; font-size: 0.9rem; opacity: 0.7; letter-spacing: 0.5px; }
-    .badges { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
-    .badge {
-      background: rgba(255,255,255,0.15);
-      border: 1px solid rgba(255,255,255,0.3);
-      border-radius: 20px;
-      padding: 5px 14px;
-      font-size: 0.82rem;
-      font-weight: 600;
-    }
+/* Hero */
+.hero{background:linear-gradient(160deg,#0d1b2a,#1a3a5c 50%,#2c5282);padding:44px 24px 32px;position:relative;overflow:hidden}
+.hero::after{content:'';position:absolute;top:-40%;right:-20%;width:260px;height:260px;background:radial-gradient(circle,rgba(255,255,255,.07),transparent 70%);border-radius:50%;pointer-events:none}
+.hero-label{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:2.5px;margin-bottom:10px}
+.hero h1{font-size:28px;font-weight:900;color:#fff;line-height:1.2;margin-bottom:6px}
+.hero-sub{font-size:14px;color:rgba(255,255,255,.65);margin-bottom:16px}
+.hero-badges{display:flex;flex-wrap:wrap;gap:8px}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:8px;font-size:11px;font-weight:600}
+.badge-date{background:rgba(255,255,255,.12);color:rgba(255,255,255,.85)}
+.badge-note{background:rgba(220,175,36,.2);color:rgba(255,220,130,.95)}
+.badge-warn{background:rgba(220,53,69,.25);color:rgba(255,160,160,.95)}
 
-    /* ALERT */
-    .alert {
-      background: var(--red-light);
-      border-left: 4px solid var(--red);
-      margin: 24px auto;
-      max-width: 900px;
-      border-radius: 6px;
-      padding: 14px 18px;
-      font-size: 0.92rem;
-    }
-    .alert strong { color: var(--red); }
+/* Stats bar */
+.stats-bar{display:flex;background:var(--card);border-bottom:1px solid var(--border)}
+.stat{flex:1;text-align:center;padding:14px 8px;border-right:1px solid var(--border)}
+.stat:last-child{border-right:none}
+.stat-val{font-size:18px;font-weight:900;color:var(--accent)}
+.stat-lbl{font-size:10px;font-weight:600;color:var(--textL);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
 
-    /* LAYOUT */
-    .container { max-width: 960px; margin: 0 auto; padding: 0 20px 60px; }
+/* Day nav tabs */
+.day-nav{display:flex;gap:6px;padding:14px 16px 0;overflow-x:auto;scrollbar-width:none;background:var(--card);border-bottom:1px solid var(--border)}
+.day-nav::-webkit-scrollbar{display:none}
+.day-tab{flex-shrink:0;padding:7px 13px;border-radius:8px 8px 0 0;font-size:11px;font-weight:700;color:#fff;cursor:pointer;text-decoration:none;opacity:.7;transition:opacity .2s}
+.day-tab:hover,.day-tab.active{opacity:1}
+.d1-tab{background:var(--d1)}.d2-tab{background:var(--d2)}.d3-tab{background:var(--d3)}
+.d4-tab{background:var(--d4)}.d5-tab{background:var(--d5)}.d6-tab{background:var(--d6)}
 
-    /* SECTION HEADERS */
-    .section-title {
-      font-size: 1.35rem;
-      font-weight: 700;
-      color: var(--blue);
-      border-bottom: 2px solid var(--border);
-      padding-bottom: 8px;
-      margin: 40px 0 20px;
-    }
+/* Map */
+.map-wrap{margin:16px;border-radius:var(--r);overflow:hidden;border:1px solid var(--border);box-shadow:var(--sh);background:var(--card)}
+#map{height:400px;width:100%}
+.map-legend{display:flex;flex-wrap:wrap;gap:6px;padding:10px 14px;border-top:1px solid var(--border);background:#f9f9fc}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--text2)}
+.legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+.map-link-bar{display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 14px;border-top:1px solid var(--border)}
+.map-link-bar a{display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 18px;background:var(--accent);color:#fff;border-radius:10px;text-decoration:none;font-size:13px;font-weight:600;box-shadow:0 2px 6px rgba(45,91,227,.25)}
 
-    /* TABLES */
-    .table-wrap { overflow-x: auto; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
-    table { width: 100%; border-collapse: collapse; background: var(--card); font-size: 0.88rem; }
-    th {
-      background: var(--blue);
-      color: #fff;
-      padding: 10px 14px;
-      text-align: left;
-      font-weight: 600;
-      font-size: 0.82rem;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-    }
-    td { padding: 9px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
-    tr:last-child td { border-bottom: none; }
-    tr:hover td { background: #f0f4ff; }
+/* Pre-book strip */
+.prebook-strip{margin:0 16px 16px;background:#fffbf0;border:1.5px solid #f0c040;border-radius:var(--r);padding:16px}
+.prebook-strip h2{font-size:14px;font-weight:800;color:#8a6914;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.prebook-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid #f5e8c0}
+.prebook-item:last-child{border:none;padding-bottom:0}
+.prebook-dot{width:8px;height:8px;border-radius:50%;background:#d4920b;margin-top:7px;flex-shrink:0}
+.prebook-text{font-size:13px;color:#5a4a1a;line-height:1.5}
+.prebook-text strong{color:#2a2000}
+.prebook-where{font-size:11px;color:#8a7040;margin-top:2px}
+.prebook-btn{display:inline-flex;align-items:center;gap:4px;margin-top:5px;padding:5px 10px;background:#d4920b;color:#fff;border-radius:6px;text-decoration:none;font-size:10px;font-weight:700}
 
-    /* STATUS CHIPS */
-    .status-booked { background: var(--green-light); color: var(--green); border-radius: 12px; padding: 2px 10px; font-size: 0.78rem; font-weight: 700; white-space: nowrap; }
-    .status-needs { background: var(--red-light); color: var(--red); border-radius: 12px; padding: 2px 10px; font-size: 0.78rem; font-weight: 700; white-space: nowrap; }
-    .status-urgent { background: #fff0c2; color: #7a5000; border-radius: 12px; padding: 2px 10px; font-size: 0.78rem; font-weight: 700; white-space: nowrap; }
-    .status-verify { background: #e8e8e8; color: #444; border-radius: 12px; padding: 2px 10px; font-size: 0.78rem; font-weight: 700; white-space: nowrap; }
+/* Section / Day card */
+.day-section{margin:0 16px 24px}
+.day-header{display:flex;align-items:center;gap:0;border-radius:var(--r) var(--r) 0 0;overflow:hidden}
+.day-num-badge{width:60px;height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-weight:900}
+.day-num-badge .num{font-size:24px;line-height:1}
+.day-num-badge .lbl{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:.75}
+.day-header-text{flex:1;padding:12px 14px;color:#fff}
+.day-header-text h2{font-size:15px;font-weight:800;line-height:1.3}
+.day-header-text p{font-size:12px;opacity:.75;margin-top:2px}
+.day-body{background:var(--card);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--r) var(--r);overflow:hidden;box-shadow:var(--sh)}
 
-    /* DAY CARDS */
-    .day-card {
-      background: var(--card);
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-      margin-bottom: 28px;
-      overflow: hidden;
-    }
-    .day-header {
-      padding: 18px 22px 14px;
-      border-bottom: 1px solid var(--border);
-    }
-    .day-number { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--green); }
-    .day-title { font-size: 1.15rem; font-weight: 700; color: var(--blue); margin-top: 2px; }
-    .day-meta { font-size: 0.82rem; color: var(--gray); margin-top: 4px; }
-    .day-note {
-      margin: 0 22px 0;
-      padding: 10px 14px;
-      background: var(--yellow-light);
-      border-left: 3px solid var(--yellow);
-      border-radius: 4px;
-      font-size: 0.83rem;
-      margin-top: 14px;
-      margin-bottom: 0;
-    }
-    .day-note.warn {
-      background: var(--red-light);
-      border-left-color: var(--red);
-    }
-    .day-body { padding: 0 22px 18px; }
-    .day-body table { margin-top: 14px; border-radius: 6px; overflow: hidden; }
-    .day-body th { background: #3a5a8a; }
+/* Stop rows */
+.stop-row{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-bottom:1px solid #f3f3f8}
+.stop-row:last-of-type{border-bottom:none}
+.stop-row.main-stop{background:#fffdf5;border-left:3px solid var(--gold)}
+.stop-row.dont-miss{background:#fff0f5;border-left:3px solid var(--d6)}
+.stop-row.prebook-stop{background:#f0fff8;border-left:3px solid var(--green)}
+.stop-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;font-weight:700;color:#fff}
+.stop-info{flex:1;min-width:0}
+.stop-name{font-size:14px;font-weight:700;line-height:1.3;color:var(--text)}
+.stop-why{font-size:12px;color:var(--text2);margin-top:3px;line-height:1.5}
+.stop-meta{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.stop-tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;text-transform:uppercase;letter-spacing:.4px}
+.tag-time{background:#f0f4ff;color:var(--accent)}
+.tag-dur{background:#f3fff8;color:var(--green)}
+.tag-cost{background:#fff8f0;color:#c05a00}
+.tag-warn{background:var(--redL);color:var(--red)}
+.tag-main{background:var(--goldL);color:var(--gold)}
+.tag-miss{background:#fff0f5;color:var(--d6)}
+.tag-prebook{background:var(--greenL);color:var(--green)}
+.stop-nav{margin-top:8px;display:flex;flex-wrap:wrap;gap:5px}
+.nav-btn{display:inline-flex;align-items:center;gap:4px;padding:6px 11px;background:var(--accent);color:#fff;border-radius:7px;text-decoration:none;font-size:11px;font-weight:700}
+.nav-btn.green{background:var(--green)}
+.nav-btn.orange{background:#e07a00}
+.nav-btn.gold{background:#c07b00}
 
-    .food-section { margin-top: 14px; }
-    .food-label { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray); margin-bottom: 6px; }
-    .food-items { list-style: none; }
-    .food-items li { font-size: 0.85rem; padding: 3px 0; padding-left: 16px; position: relative; }
-    .food-items li::before { content: "🍽"; position: absolute; left: 0; font-size: 0.75rem; top: 3px; }
+/* Drive connector */
+.drive-row{display:flex;align-items:center;gap:8px;padding:6px 16px;background:#f9f9fc;font-size:11px;color:var(--textL);border-bottom:1px solid #f3f3f8}
+.drive-row::before{content:'';width:2px;height:14px;background:var(--border);border-radius:1px;flex-shrink:0}
 
-    /* BUDGET */
-    .budget-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 14px;
-      margin-bottom: 18px;
-    }
-    .budget-card {
-      background: var(--card);
-      border-radius: 8px;
-      padding: 16px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
-      border-top: 3px solid var(--green);
-      text-align: center;
-    }
-    .budget-card .amount { font-size: 1.4rem; font-weight: 800; color: var(--green); }
-    .budget-card .label { font-size: 0.78rem; color: var(--gray); margin-top: 3px; }
-    .budget-card .sub { font-size: 0.75rem; color: #999; }
-    .budget-note { background: var(--yellow-light); border: 1px solid var(--yellow); border-radius: 6px; padding: 12px 16px; font-size: 0.85rem; }
+/* Day footer stats */
+.day-footer{display:flex;padding:12px 16px;background:#f7f8fd;border-top:1px solid var(--border);flex-wrap:wrap}
+.day-stat{flex:1;min-width:80px;text-align:center;padding:4px}
+.day-stat .dv{font-size:15px;font-weight:800;color:var(--accent)}
+.day-stat .dl{font-size:10px;color:var(--textL);text-transform:uppercase;letter-spacing:.4px}
 
-    /* NOTES */
-    .notes-grid { display: grid; gap: 12px; }
-    .note-item {
-      background: var(--card);
-      border-radius: 7px;
-      padding: 14px 16px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-      font-size: 0.87rem;
-      border-left: 3px solid var(--blue);
-    }
-    .note-item strong { color: var(--blue); }
+/* Alert box */
+.alert-box{margin:0 16px 12px;padding:12px 14px;border-radius:12px;font-size:13px;line-height:1.6;display:flex;gap:10px}
+.alert-box.red{background:var(--redL);color:#7a1520;border-left:4px solid var(--red)}
+.alert-box.yellow{background:var(--goldL);color:#7a5000;border-left:4px solid var(--gold)}
+.alert-box.blue{background:var(--accentL);color:#1a3580;border-left:4px solid var(--accent)}
+.alert-icon{flex-shrink:0;font-size:16px}
 
-    /* PACKING */
-    .pack-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 10px;
-    }
-    .pack-item {
-      background: var(--card);
-      border-radius: 6px;
-      padding: 10px 14px;
-      font-size: 0.85rem;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-      display: flex;
-      align-items: flex-start;
-      gap: 8px;
-    }
-    .pack-icon { flex-shrink: 0; }
+/* Weather */
+.weather-section{margin:0 16px 16px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh)}
+.weather-header{background:linear-gradient(135deg,#1a6b9e,#2d9fd3);padding:14px 16px;color:#fff}
+.weather-header h2{font-size:15px;font-weight:800}
+.weather-header p{font-size:12px;opacity:.75;margin-top:2px}
+.weather-row{display:flex;align-items:flex-start;gap:10px;padding:11px 16px;border-bottom:1px solid #f3f3f8;font-size:13px}
+.weather-row:last-child{border:none}
+.weather-day{font-weight:800;color:var(--text);width:46px;flex-shrink:0;font-size:12px}
+.weather-icon{font-size:20px;width:26px;text-align:center;flex-shrink:0}
+.weather-loc{color:var(--text);flex:1;font-size:12px;font-weight:600}
+.weather-detail{font-size:11px;color:var(--text2);margin-top:2px}
+.weather-temp{font-weight:800;color:var(--accent);font-size:12px;white-space:nowrap}
+.weather-alert{margin:0 16px 8px;background:#fff4e0;border:1px solid #f0c040;border-radius:8px;padding:10px 14px;font-size:12px;color:#7a5000}
 
-    /* CHANGES SECTION */
-    .change-card {
-      background: var(--card);
-      border-radius: 8px;
-      padding: 16px 18px;
-      margin-bottom: 14px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
-      border-left: 4px solid var(--blue);
-      font-size: 0.87rem;
-    }
-    .change-card h4 { color: var(--blue); margin-bottom: 6px; font-size: 0.95rem; }
-    .change-card .from { color: var(--red); font-size: 0.82rem; margin-bottom: 4px; }
-    .change-card .to { color: var(--green); font-size: 0.82rem; }
+/* Budget */
+.budget-section{margin:0 16px 16px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh)}
+.budget-header{background:var(--text);padding:14px 16px;color:#fff}
+.budget-header h2{font-size:15px;font-weight:800}
+.budget-header p{font-size:12px;opacity:.65;margin-top:2px}
+.budget-row{display:flex;justify-content:space-between;padding:10px 16px;border-bottom:1px solid #f3f3f8;font-size:13px}
+.budget-row:last-child{border:none}
+.budget-row .bl{color:var(--text2)}
+.budget-row .bv{font-weight:700;color:var(--text)}
+.budget-total{display:flex;justify-content:space-between;padding:14px 16px;background:#f0f4ff;font-size:15px;font-weight:800}
+.budget-total .bv{color:var(--accent)}
 
-    /* FOOTER */
-    footer { text-align: center; padding: 30px; font-size: 0.78rem; color: #aaa; }
+/* Footer */
+footer{text-align:center;padding:28px 16px 48px;font-size:12px;color:var(--textL)}
 
-    @media (max-width: 600px) {
-      .hero h1 { font-size: 1.7rem; }
-      .badges { gap: 8px; }
-    }
-  </style>
+/* Day color backgrounds */
+.d1-bg{background:var(--d1)}.d2-bg{background:var(--d2)}.d3-bg{background:var(--d3)}
+.d4-bg{background:var(--d4)}.d5-bg{background:var(--d5)}.d6-bg{background:var(--d6)}
+
+/* Leaflet custom pins */
+.lpin{border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.4);border:2px solid rgba(255,255,255,.8)}
+
+@media(max-width:480px){.hero h1{font-size:22px}.stats-bar .stat-val{font-size:15px}}
+</style>
 </head>
 <body>
 
+<!-- HERO -->
 <div class="hero">
-  <h1>SF to Seattle Road Trip</h1>
-  <div class="subtitle">National Parks | September 2–7, 2026</div>
-  <div class="route">San Francisco → Yosemite → Redwoods → Crater Lake → Mt. Hood → Columbia Gorge → Mt. Rainier → Seattle</div>
-  <div class="badges">
-    <span class="badge">6 Days / 5 Nights</span>
-    <span class="badge">2 Travelers</span>
-    <span class="badge">~1,550 Miles</span>
-    <span class="badge">~$950/person all-in</span>
+  <div class="hero-label">🚗 Road Trip Planner</div>
+  <h1>San Francisco → Seattle</h1>
+  <div class="hero-sub">Yosemite · Redwoods · Crater Lake · Mt. Hood · Columbia Gorge · Mt. Rainier</div>
+  <div class="hero-badges">
+    <span class="badge badge-date">📅 Sep 2–7, 2026 · 6 Days</span>
+    <span class="badge badge-date">👥 2 People · ~1,550 mi</span>
+    <span class="badge badge-note">💰 ~$950/person all-in</span>
+    <span class="badge badge-warn">⚠️ Multnomah permit TODAY Aug 23 7 AM PT</span>
   </div>
 </div>
 
-<div class="container">
-
-  <!-- CRITICAL ALERT -->
-  <div class="alert">
-    <strong>ACTION REQUIRED TODAY (Aug 23):</strong> Multnomah Falls I-84 timed-use permit primary release is today at 7:00 a.m. PT on recreation.gov. If slots are gone, the backup release is Sep 4 at 7:00 a.m. PT. Set a phone alarm.
-  </div>
-
-  <!-- ACCOMMODATION -->
-  <div class="section-title">Accommodation</div>
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>Night</th>
-          <th>Area</th>
-          <th>Recommended Stay</th>
-          <th>Budget Cap (2 people)</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><strong>Sep 2</strong></td>
-          <td>Knights Ferry, CA</td>
-          <td>Rivers Edge RV Park — cabin or tent site. Confirm late check-in.</td>
-          <td>≤ $130</td>
-          <td><span class="status-needs">Needs Booking</span></td>
-        </tr>
-        <tr>
-          <td><strong>Sep 3</strong></td>
-          <td>Trinidad, CA</td>
-          <td>Sylvan Harbor RV Camp &amp; Cabins — cabin, camper, or tent.</td>
-          <td>≤ $150</td>
-          <td><span class="status-needs">Needs Booking</span></td>
-        </tr>
-        <tr>
-          <td><strong>Sep 4</strong></td>
-          <td>Grants Pass, OR</td>
-          <td>Jumpoff Joe Creek Campground — yurt, canvas tent, or cabin.</td>
-          <td>≤ $130</td>
-          <td><span class="status-needs">Needs Booking</span></td>
-        </tr>
-        <tr>
-          <td><strong>Sep 5</strong></td>
-          <td>Bend / Redmond, OR</td>
-          <td>Budget motel — free parking, free cancellation.</td>
-          <td>≤ $140</td>
-          <td><span class="status-needs">Needs Booking</span></td>
-        </tr>
-        <tr>
-          <td><strong>Sep 6</strong></td>
-          <td>Tenino / Olympia, WA</td>
-          <td>Offut Lake Resort cabin. Backup: Kemp Olson Memorial Park tent site.</td>
-          <td>≤ $150</td>
-          <td><span class="status-needs">Needs Booking</span></td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- BOOKING CHECKLIST -->
-  <div class="section-title">Booking Checklist</div>
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr><th>Item</th><th>Action</th><th>Status</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><strong>Multnomah Falls Permit</strong></td>
-          <td>recreation.gov — primary release TODAY Aug 23 at 7 a.m. PT. Backup: Sep 4 at 7 a.m. PT.</td>
-          <td><span class="status-urgent">Urgent — Today</span></td>
-        </tr>
-        <tr>
-          <td><strong>Rental Car</strong></td>
-          <td>Confirm $300 quote covers one-way Seattle drop, unlimited miles, taxes, extra-driver fee. <strong>Ask explicitly if unpaved roads + stream crossings are permitted</strong> (needed for Fern Canyon).</td>
-          <td><span class="status-verify">Verify Now</span></td>
-        </tr>
-        <tr>
-          <td><strong>Fern Canyon Vehicle Permit</strong></td>
-          <td>Reserve all-day vehicle permit on recreation.gov. If sold out, try day-before release Sep 3 at 9 a.m. PT. Only proceed if rental car allows unpaved/stream roads.</td>
-          <td><span class="status-needs">Needs Booking</span></td>
-        </tr>
-        <tr>
-          <td><strong>Park Pass</strong></td>
-          <td>$80 resident America the Beautiful Pass if one traveler qualifies. Otherwise $250 nonresident. Buy before departure.</td>
-          <td><span class="status-needs">Needs Purchase</span></td>
-        </tr>
-        <tr>
-          <td><strong>All Accommodations</strong></td>
-          <td>See table above. Book soon — Labor Day weekend affects availability region-wide.</td>
-          <td><span class="status-needs">Needs Booking</span></td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- DAY BY DAY -->
-  <div class="section-title">Day-by-Day Plan</div>
-
-  <!-- DAY 1 -->
-  <div class="day-card">
-    <div class="day-header">
-      <div class="day-number">Day 1 — Wednesday, September 2</div>
-      <div class="day-title">San Francisco → Yosemite → Knights Ferry</div>
-      <div class="day-meta">~285 miles | ~6.5–7 hrs driving | Overnight: Rivers Edge RV Park, Knights Ferry</div>
-    </div>
-    <div class="day-body">
-      <div class="day-note">
-        <strong>September Yosemite note:</strong> Waterfalls are at their lowest in early September. Yosemite Falls is typically dry; Vernal Fall is a trickle. This is fine — the valley granite, meadows, and El Capitan views are spectacular year-round. Don't build the itinerary around waterfalls.
-      </div>
-      <table>
-        <thead><tr><th>Time</th><th>Stop</th><th>Duration</th><th>Notes</th></tr></thead>
-        <tbody>
-          <tr><td>04:30</td><td>Depart San Francisco</td><td>—</td><td>Fill gas and prep breakfast/lunch the night before.</td></tr>
-          <tr><td>08:45</td><td>Tunnel View + Bridalveil Fall viewpoint</td><td>45m</td><td>Classic El Capitan–Half Dome panorama. Minimal water at Bridalveil in September but iconic framing.</td></tr>
-          <tr><td>09:45</td><td>Park once in Yosemite Valley</td><td>—</td><td>Use the free valley shuttle; avoid moving the car repeatedly.</td></tr>
-          <tr><td>10:00</td><td>Cook's Meadow loop</td><td>1h</td><td>Best granite wall and El Cap views from the meadow; easy walk.</td></tr>
-          <tr><td>11:15</td><td>Lower Yosemite Fall loop</td><td>30m</td><td>Worth a look even if mostly dry.</td></tr>
-          <tr><td>12:00</td><td>Picnic lunch beside the Merced River</td><td>45m</td><td>Use bear boxes; never leave food unattended.</td></tr>
-          <tr><td>13:00</td><td>Mist Trail to Vernal Fall Footbridge</td><td>1.5h</td><td>Moderate hike. Turn around at the footbridge — going further adds time and the falls are low.</td></tr>
-          <tr><td>14:45</td><td>El Capitan Meadow + Valley View</td><td>45m</td><td>Final photo stops on the way out.</td></tr>
-          <tr><td>15:45</td><td>Drive to Knights Ferry</td><td>~2h</td><td>Exit via CA-120 W (Big Oak Flat Road). Download route offline before entering the park.</td></tr>
-          <tr><td>18:00</td><td>Arrive Knights Ferry</td><td>—</td><td>Check in, rest.</td></tr>
-        </tbody>
-      </table>
-      <div class="food-section">
-        <div class="food-label">Food</div>
-        <ul class="food-items">
-          <li>Pack breakfast and picnic from SF the night before</li>
-          <li>Yosemite Village Store — groceries and sandwiches if needed</li>
-          <li>Degnan's Kitchen — quick meal only if the line is short</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
-  <!-- DAY 2 -->
-  <div class="day-card">
-    <div class="day-header">
-      <div class="day-number">Day 2 — Thursday, September 3</div>
-      <div class="day-title">Avenue of the Giants → Humboldt Redwoods → Trinidad</div>
-      <div class="day-meta">~370 miles | ~6.5–7 hrs driving | Overnight: Sylvan Harbor, Trinidad</div>
-    </div>
-    <div class="day-body">
-      <div class="day-note warn">
-        <strong>Longest driving day.</strong> With stops this is a 13–14 hour day. The Trinidad sunset is aspirational — treat it as a bonus if you make it. If running behind, cut the Redwood Creek Overlook (the least essential stop).
-      </div>
-      <table>
-        <thead><tr><th>Time</th><th>Stop</th><th>Duration</th><th>Notes</th></tr></thead>
-        <tbody>
-          <tr><td>05:30</td><td>Depart Knights Ferry</td><td>—</td><td>Trade drivers every ~2 hours.</td></tr>
-          <tr><td>11:00</td><td>Avenue of the Giants scenic drive</td><td>1.5h</td><td>Turn off US-101 onto the parallel scenic road at Phillipsville.</td></tr>
-          <tr><td>11:15</td><td>Founders Grove + Dyerville Giant</td><td>45m</td><td>Easy 0.5-mile loop among enormous coast redwoods.</td></tr>
-          <tr><td>12:15</td><td>Picnic along the Avenue</td><td>30m</td><td>Use a roadside pullout.</td></tr>
-          <tr><td>13:00</td><td>Drive north toward Orick</td><td>~1.5h</td><td>Back on US-101 after Pepperwood.</td></tr>
-          <tr><td>14:45</td><td>Lady Bird Johnson Grove</td><td>1h</td><td>Photogenic 1.4-mile loop; small parking area — may need to wait briefly.</td></tr>
-          <tr><td>16:00</td><td>Redwood Creek Overlook</td><td>25m</td><td>Elevated forest view. <strong>Skip this if running behind.</strong></td></tr>
-          <tr><td>17:00</td><td>Drive to Trinidad</td><td>~1h</td><td>US-101 N.</td></tr>
-          <tr><td>18:00–18:30</td><td>Trinidad State Beach (if timing works)</td><td>30–45m</td><td>Sea stacks and cliffs. Sunset is ~20:00 in September — you have time if arrived.</td></tr>
-        </tbody>
-      </table>
-      <div class="food-section">
-        <div class="food-label">Food</div>
-        <ul class="food-items">
-          <li>Cooler lunch from Knights Ferry</li>
-          <li>Murphy's Market in Trinidad — restock breakfast and trail food</li>
-          <li>Lighthouse Grill in Trinidad — casual dinner</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
-  <!-- DAY 3 -->
-  <div class="day-card">
-    <div class="day-header">
-      <div class="day-number">Day 3 — Friday, September 4</div>
-      <div class="day-title">Fern Canyon → Prairie Creek → Jedediah Smith → Grants Pass</div>
-      <div class="day-meta">~220 miles | ~4.5–5 hrs driving | Overnight: Jumpoff Joe Creek Campground, Grants Pass</div>
-    </div>
-    <div class="day-body">
-      <div class="day-note warn">
-        <strong>Fern Canyon rental car warning:</strong> The road to Gold Bluffs Beach / Fern Canyon is unpaved gravel with two stream crossings. Many rental agreements explicitly prohibit this and it can void insurance coverage. Confirm in writing with the rental company <em>before</em> booking the Fern Canyon permit. If not permitted, substitute the Prairie Creek Foothill Trail + Big Tree loop — no permit required.
-      </div>
-      <table>
-        <thead><tr><th>Time</th><th>Stop</th><th>Duration</th><th>Notes</th></tr></thead>
-        <tbody>
-          <tr><td>07:00</td><td>Newton B. Drury Scenic Parkway + Big Tree Wayside</td><td>45m</td><td>Quiet old-growth road; watch for Roosevelt elk.</td></tr>
-          <tr><td>08:00</td><td>Drive to Fern Canyon trailhead</td><td>30m</td><td>Unpaved road — confirm rental clearance first.</td></tr>
-          <tr><td>08:30</td><td>Fern Canyon + Gold Bluffs Beach</td><td>1.5–2h</td><td>Permit required. Otherworldly fern-covered canyon walls.</td></tr>
-          <tr><td>10:30</td><td>Drive north to Jedediah Smith</td><td>~1h</td><td>US-101 N through Crescent City.</td></tr>
-          <tr><td>12:00</td><td>Stout Grove loop</td><td>45m</td><td>Short cinematic old-growth walk beside the Smith River.</td></tr>
-          <tr><td>12:50</td><td>Smith River photo / swim stop</td><td>30m</td><td>Emerald green water. Only enter calm, slow-moving sections.</td></tr>
-          <tr><td>13:30</td><td>Drive US-199 to Grants Pass</td><td>~2h</td><td>Winding scenic road. <strong>Fuel in Crescent City</strong> before this stretch.</td></tr>
-          <tr><td>15:30</td><td>Arrive Grants Pass</td><td>—</td><td>Check in, rest.</td></tr>
-        </tbody>
-      </table>
-      <div class="food-section">
-        <div class="food-label">Food</div>
-        <ul class="food-items">
-          <li>Pack breakfast and lunch from Trinidad</li>
-          <li>Good Harvest Cafe, Crescent City — practical late-lunch stop</li>
-          <li>Wild River Brewing, Grants Pass — dinner</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
-  <!-- DAY 4 -->
-  <div class="day-card">
-    <div class="day-header">
-      <div class="day-number">Day 4 — Saturday, September 5</div>
-      <div class="day-title">Crater Lake → Smith Rock (optional) → Bend/Redmond</div>
-      <div class="day-meta">~205 miles | ~4–4.5 hrs driving | Overnight: Budget motel, Bend or Redmond</div>
-    </div>
-    <div class="day-body">
-      <div class="day-note">
-        <strong>Crater Lake 2026:</strong> East Rim construction = no complete Rim Drive. Cleetwood Cove and all lake access closed for all of 2026 — no swimming. West Rim and North Entrance are open. The lake is still spectacular from the rim.
-      </div>
-      <table>
-        <thead><tr><th>Time</th><th>Stop</th><th>Duration</th><th>Notes</th></tr></thead>
-        <tbody>
-          <tr><td>06:00</td><td>Depart Grants Pass</td><td>—</td><td>Enter via OR-62 and the south entrance.</td></tr>
-          <tr><td>08:15</td><td>Rim Village + Sinnott Memorial Overlook</td><td>45m</td><td>First panoramic lake views.</td></tr>
-          <tr><td>09:15</td><td>Watchman Peak Trail</td><td>1–1.5h</td><td>Moderate 1.6-mile hike; one of the best elevated lake viewpoints on the West Rim.</td></tr>
-          <tr><td>11:00</td><td>West Rim viewpoints drive</td><td>1h</td><td>Discovery Point, Watchman Overlook, North Junction — all accessible.</td></tr>
-          <tr><td>12:15</td><td>Picnic + depart via North Entrance</td><td>—</td><td>Pack food; park dining options are very limited.</td></tr>
-          <tr><td>14:30</td><td>Drive toward Bend</td><td>~1.5–2h</td><td>OR-138 E to US-97 N.</td></tr>
-          <tr><td>16:30–17:30</td><td>Smith Rock State Park (optional)</td><td>1h</td><td>Rim Rock Trail for golden-hour views of the rock formations. Skip if tired or smoky.</td></tr>
-          <tr><td>~18:00</td><td>Arrive Bend/Redmond</td><td>—</td><td>Check in.</td></tr>
-        </tbody>
-      </table>
-      <div class="food-section">
-        <div class="food-label">Food</div>
-        <ul class="food-items">
-          <li>Pack a full picnic — Crater Lake dining is limited and expensive</li>
-          <li>Rim Village Cafe — grab-and-go backup only</li>
-          <li>Bend food-cart pods — easy, cheap, good variety for dinner</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
-  <!-- DAY 5 -->
-  <div class="day-card">
-    <div class="day-header">
-      <div class="day-number">Day 5 — Sunday, September 6</div>
-      <div class="day-title">Mt. Hood → Timberline → Columbia River Gorge → Tenino</div>
-      <div class="day-meta">~275 miles | ~5.5–6 hrs driving | Overnight: Offut Lake Resort, Tenino/Olympia</div>
-    </div>
-    <div class="day-body">
-      <div class="day-note warn">
-        <strong>Check before departure:</strong> Mt. Hood area has active fire closures — verify on TripCheck Oregon and InciWeb the morning of Day 5. Choose OR-35 vs US-26 based on conditions. Multnomah Falls permit does not guarantee a parking spot; the I-84 shuttle from Rooster Rock is a solid backup.
-      </div>
-      <table>
-        <thead><tr><th>Time</th><th>Stop</th><th>Duration</th><th>Notes</th></tr></thead>
-        <tbody>
-          <tr><td>05:30</td><td>Depart Bend/Redmond</td><td>—</td><td>Calm morning = best reflection conditions.</td></tr>
-          <tr><td>07:30</td><td>Trillium Lake loop</td><td>1–1.5h</td><td>$10 day-use fee. Classic Mt. Hood reflection; arrive early to beat crowds.</td></tr>
-          <tr><td>09:15</td><td>Timberline Lodge + Timberline Trail walk</td><td>1.5h</td><td>Stay below 9,500 ft. Do not attempt summit or snowfield travel.</td></tr>
-          <tr><td>11:00</td><td>Drive toward Columbia River Gorge</td><td>~1.5–2h</td><td>Check fire closure status before choosing route.</td></tr>
-          <tr><td>13:00</td><td>Multnomah Falls + Benson Bridge</td><td>1h</td><td>Use your reserved I-84 timed-use permit. Permit doesn't guarantee parking.</td></tr>
-          <tr><td>14:30</td><td>Drive to Tenino / Offut Lake</td><td>~2.5h</td><td>US-30 W → I-5 N. Arrive before dark; prep for pre-dawn departure.</td></tr>
-          <tr><td>~17:30</td><td>Arrive, prep for Day 6</td><td>—</td><td>Pack breakfast, coffee, and lunch tonight.</td></tr>
-        </tbody>
-      </table>
-      <div class="food-section">
-        <div class="food-label">Food</div>
-        <ul class="food-items">
-          <li>Pack breakfast and lunch in Bend before leaving</li>
-          <li>Huckleberry Inn, Government Camp — quick hot option between Hood and Gorge</li>
-          <li>Timberline and Multnomah Falls food is available but crowded and pricey — backup only</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
-  <!-- DAY 6 -->
-  <div class="day-card">
-    <div class="day-header">
-      <div class="day-number">Day 6 — Monday, September 7 (Labor Day)</div>
-      <div class="day-title">Mt. Rainier Paradise → Seattle</div>
-      <div class="day-meta">~195 miles | ~4–4.5 hrs driving (+1–1.5h Labor Day traffic) | End: Seattle</div>
-    </div>
-    <div class="day-body">
-      <div class="day-note warn">
-        <strong>Labor Day warning:</strong> This is the single busiest day of the year at Mt. Rainier. Paradise parking fills by 8–9 AM. Reaching the Nisqually Entrance before 7:00 AM is not optional — it's necessary. I-5 into Seattle is heavy from 2 PM onward. Sunrise and White River are closed (Grand Park 2 Fire) — Paradise is the correct choice.
-      </div>
-      <table>
-        <thead><tr><th>Time</th><th>Stop</th><th>Duration</th><th>Notes</th></tr></thead>
-        <tbody>
-          <tr><td>04:45</td><td>Depart Tenino/Offut Lake</td><td>—</td><td>Dark departure — headlamps needed.</td></tr>
-          <tr><td>06:00–06:30</td><td>Enter via Nisqually Entrance</td><td>—</td><td>Beat the Labor Day crowd.</td></tr>
-          <tr><td>06:45</td><td>Longmire + Christine/Narada Falls</td><td>45m</td><td>Roadside photography on the climb toward Paradise.</td></tr>
-          <tr><td>08:00</td><td>Reflection Lakes</td><td>20–30m</td><td>Only if the mountain is clear — skip if clouded in.</td></tr>
-          <tr><td>08:45</td><td>Paradise: Myrtle Falls + Nisqually Vista loop</td><td>2h</td><td>Two short hikes with mountain, meadow, waterfall, and glacier views.</td></tr>
-          <tr><td>11:00</td><td>Optional: Deadhorse Creek / Moraine Trail</td><td>1.5–2h</td><td>Decide <em>before</em> arriving at Paradise — don't make this call while on-site. Skip if tired.</td></tr>
-          <tr><td>12:45</td><td>Depart for Seattle</td><td>—</td><td>Target arrival ~4 PM; build in Labor Day buffer on I-5.</td></tr>
-          <tr><td>~15:30–16:30</td><td>Arrive Seattle</td><td>—</td><td>Return car, celebrate.</td></tr>
-        </tbody>
-      </table>
-      <div class="food-section">
-        <div class="food-label">Food</div>
-        <ul class="food-items">
-          <li>Pack everything — coffee, breakfast, lunch — before the pre-dawn departure</li>
-          <li>National Park Inn at Longmire — backup meal option</li>
-          <li>Seattle dinner to celebrate the trip</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-
-  <!-- BUDGET -->
-  <div class="section-title">Budget Breakdown</div>
-  <div class="budget-grid">
-    <div class="budget-card">
-      <div class="amount">$300</div>
-      <div class="label">Rental Car</div>
-      <div class="sub">$150/person · already budgeted</div>
-    </div>
-    <div class="budget-card">
-      <div class="amount">≤$700</div>
-      <div class="label">Lodging (5 nights)</div>
-      <div class="sub">≤$350/person</div>
-    </div>
-    <div class="budget-card">
-      <div class="amount">~$250</div>
-      <div class="label">Fuel</div>
-      <div class="sub">~$125/person · ~1,550 mi</div>
-    </div>
-    <div class="budget-card">
-      <div class="amount">~$360</div>
-      <div class="label">Food</div>
-      <div class="sub">~$180/person · 6 days</div>
-    </div>
-    <div class="budget-card">
-      <div class="amount">~$100</div>
-      <div class="label">Passes + Permits</div>
-      <div class="sub">~$50/person</div>
-    </div>
-    <div class="budget-card">
-      <div class="amount">~$190</div>
-      <div class="label">Contingency</div>
-      <div class="sub">~$95/person</div>
-    </div>
-  </div>
-  <div class="budget-note">
-    <strong>Total post-rental:</strong> ~$1,600 / ~$800 per person. All-in with rental share: ~$950/person.<br><br>
-    <strong>Nonresident warning:</strong> If neither traveler qualifies for the $80 resident America the Beautiful Pass, the $250 nonresident pass adds $170 to the total. Offset by using tent backup sites for two nights.<br><br>
-    <strong>Food note:</strong> The $360 food budget requires strict grocery discipline — packed breakfasts and lunches every day. One tourist-area restaurant dinner can run $40–50/person and will break this category. Food trucks and Bend's food-cart pods are the best value dinners on the route.
-  </div>
-
-  <!-- IMPORTANT NOTES -->
-  <div class="section-title">Important Notes</div>
-  <div class="notes-grid">
-    <div class="note-item"><strong>Pace:</strong> ~32–34 hours of driving total. Significantly more comfortable if both travelers share driving. Trade off every 2 hours.</div>
-    <div class="note-item"><strong>Mt. Rainier — Grand Park 2 Fire:</strong> Sunrise and White River Campground are closed. Plan uses Paradise. Recheck NPS.gov 48 hours before Sep 7.</div>
-    <div class="note-item"><strong>Mt. Hood fires:</strong> Active closures and extreme fire danger in parts of the forest. Trillium Lake and Timberline are the core plan. Verify access on TripCheck Oregon before Day 5.</div>
-    <div class="note-item"><strong>Crater Lake:</strong> East Rim construction = no complete Rim Drive loop. Cleetwood Cove closed all of 2026. West Rim and North Entrance open and excellent.</div>
-    <div class="note-item"><strong>Yosemite:</strong> No timed entry required in 2026. Arrive early anyway — valley parking fills. Waterfalls are very low in September; valley views are still world-class.</div>
-    <div class="note-item"><strong>Fern Canyon rental car:</strong> Confirm with rental company that unpaved road + stream crossings are permitted <em>before</em> booking the vehicle permit. Do not assume.</div>
-    <div class="note-item"><strong>Fuel discipline:</strong> Never below half a tank near Yosemite, Redwoods, Crater Lake, or Rainier. Cell service is unreliable — download offline maps before each park.</div>
-    <div class="note-item"><strong>Weather &amp; layers:</strong> Yosemite afternoons can hit 90°F; Redwood/Cascade mornings can be 40–50°F. Pack warm layers even for a "summer" trip. Sleeping bags should be 3-season rated if using tent backup sites.</div>
-  </div>
-
-  <!-- PACKING LIST -->
-  <div class="section-title">Packing List</div>
-  <div class="pack-list">
-    <div class="pack-item"><span class="pack-icon">📄</span><span>IDs, rental agreement, park pass, all reservation screenshots (offline copies)</span></div>
-    <div class="pack-item"><span class="pack-icon">🗺️</span><span>Offline Google Maps + NPS park maps downloaded before each park</span></div>
-    <div class="pack-item"><span class="pack-icon">🧊</span><span>Cooler, reusable water bottles, packed breakfasts, picnic lunches, trail snacks</span></div>
-    <div class="pack-item"><span class="pack-icon">🧥</span><span>Light rain shell, fleece, sun hat, sunscreen, warm morning layers</span></div>
-    <div class="pack-item"><span class="pack-icon">👟</span><span>Water-resistant hiking shoes for Fern Canyon stream crossings (if rental permits)</span></div>
-    <div class="pack-item"><span class="pack-icon">🔦</span><span>Headlamps (needed for Days 5 and 6 pre-dawn departures) + power bank + car charger</span></div>
-    <div class="pack-item"><span class="pack-icon">🏕️</span><span>Sleeping bags (3-season rated), sleeping pads, tent — only if using tent backup sites</span></div>
-    <div class="pack-item"><span class="pack-icon">🩹</span><span>First-aid kit + emergency blanket</span></div>
-    <div class="pack-item"><span class="pack-icon">📱</span><span>Phone alarms set for Multnomah permit backup release: Sep 4 at 6:55 a.m. PT</span></div>
-  </div>
-
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stat"><div class="stat-val">~1,550</div><div class="stat-lbl">Miles</div></div>
+  <div class="stat"><div class="stat-val">6</div><div class="stat-lbl">Days</div></div>
+  <div class="stat"><div class="stat-val">20+</div><div class="stat-lbl">Stops</div></div>
+  <div class="stat"><div class="stat-val">$950</div><div class="stat-lbl">Per Person</div></div>
 </div>
 
-<footer>SF → Seattle Road Trip | September 2–7, 2026 | Plan compiled Aug 23, 2026</footer>
+<!-- DAY NAV -->
+<div class="day-nav">
+  <a class="day-tab d1-tab active" href="#day1">D1 · Yosemite</a>
+  <a class="day-tab d2-tab" href="#day2">D2 · Redwoods</a>
+  <a class="day-tab d3-tab" href="#day3">D3 · Fern Canyon</a>
+  <a class="day-tab d4-tab" href="#day4">D4 · Crater Lake</a>
+  <a class="day-tab d5-tab" href="#day5">D5 · Mt. Hood</a>
+  <a class="day-tab d6-tab" href="#day6">D6 · Rainier</a>
+</div>
 
+<!-- MAP -->
+<div class="map-wrap">
+  <div id="map"></div>
+  <div class="map-legend">
+    <div class="legend-item"><div class="legend-dot" style="background:#334155"></div> Start/End</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--d1)"></div> Day 1</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--d2)"></div> Day 2</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--d3)"></div> Day 3</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--d4)"></div> Day 4</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--d5)"></div> Day 5</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--d6)"></div> Day 6</div>
+  </div>
+  <div class="map-link-bar">
+    <a href="https://www.google.com/maps/dir/San+Francisco+CA/Yosemite+Valley+CA/Humboldt+Redwoods+State+Park+CA/Trinidad+CA/Grants+Pass+OR/Crater+Lake+OR/Bend+OR/Portland+OR/Seattle+WA" target="_blank">🗺️ Open Full Route in Google Maps</a>
+  </div>
+</div>
+
+<!-- ALERTS -->
+<div class="alert-box red" style="margin:16px 16px 8px">
+  <div class="alert-icon">🚨</div>
+  <div><strong>ACTION REQUIRED:</strong> Multnomah Falls I-84 timed-use permit — primary release Aug 23 at 7:00 AM PT on recreation.gov. Backup: Sep 4 at 7:00 AM PT. Set a phone alarm now.</div>
+</div>
+<div class="alert-box yellow">
+  <div class="alert-icon">⚠️</div>
+  <div><strong>Crater Lake 2026:</strong> East Rim construction — no complete Rim Drive. Cleetwood Cove &amp; lake access CLOSED all of 2026. West Rim and North Entrance are open and spectacular. | <strong>Mt. Rainier:</strong> Grand Park 2 Fire — Sunrise and White River areas closed. Use Paradise.</div>
+</div>
+
+<!-- PRE-BOOK STRIP -->
+<div class="prebook-strip">
+  <h2>🎫 Book Before You Leave</h2>
+  <div class="prebook-item">
+    <div class="prebook-dot"></div>
+    <div class="prebook-text">
+      <strong>Multnomah Falls I-84 Timed-Use Permit</strong> — FREE, required daytime hours
+      <div class="prebook-where">recreation.gov · Primary release Aug 23 at 7 AM PT · Backup: Sep 4 at 7 AM PT</div>
+      <a class="prebook-btn" href="https://www.recreation.gov" target="_blank">🎫 Book Now</a>
+    </div>
+  </div>
+  <div class="prebook-item">
+    <div class="prebook-dot"></div>
+    <div class="prebook-text">
+      <strong>Fern Canyon Vehicle Day-Use Permit</strong> — $12/vehicle (if rental allows unpaved roads)
+      <div class="prebook-where">recreation.gov · Required May–Sep · Day-before release Sep 3 at 9 AM PT if sold out</div>
+      <a class="prebook-btn" href="https://www.recreation.gov" target="_blank">🎫 Book Now</a>
+    </div>
+  </div>
+  <div class="prebook-item">
+    <div class="prebook-dot"></div>
+    <div class="prebook-text">
+      <strong>Rivers Edge RV Park, Knights Ferry</strong> — Sep 2 overnight ≤ $130/night
+      <div class="prebook-where">Confirm late check-in · Labor Day weekend fills fast</div>
+    </div>
+  </div>
+  <div class="prebook-item">
+    <div class="prebook-dot"></div>
+    <div class="prebook-text">
+      <strong>Sylvan Harbor RV Camp, Trinidad</strong> — Sep 3 overnight ≤ $150/night
+      <div class="prebook-where">Cabin, camper, or tent site · reservecalifornia.com</div>
+    </div>
+  </div>
+  <div class="prebook-item">
+    <div class="prebook-dot"></div>
+    <div class="prebook-text">
+      <strong>Jumpoff Joe Creek Campground, Grants Pass</strong> — Sep 4 overnight ≤ $130/night
+      <div class="prebook-where">Yurt, canvas tent, or cabin · recreation.gov</div>
+    </div>
+  </div>
+  <div class="prebook-item">
+    <div class="prebook-dot"></div>
+    <div class="prebook-text">
+      <strong>America the Beautiful Pass</strong> — $80/vehicle (resident) covers all national parks this trip
+      <div class="prebook-where">store.usgs.gov or buy at Yosemite entrance</div>
+      <a class="prebook-btn" href="https://store.usgs.gov/america-the-beautiful-passes" target="_blank">🛒 Buy Pass</a>
+    </div>
+  </div>
+</div>
+
+<!-- DAY 1 -->
+<div class="day-section" id="day1">
+  <div class="day-header d1-bg">
+    <div class="day-num-badge d1-bg"><div class="num">1</div><div class="lbl">Sep 2</div></div>
+    <div class="day-header-text">
+      <h2>San Francisco → Yosemite → Knights Ferry</h2>
+      <p>🚗 ~285 mi · 6.5–7 hrs driving · Sierra Nevada Granite</p>
+    </div>
+  </div>
+  <div class="day-body">
+    <div class="stop-row">
+      <div class="stop-icon d1-bg">🌅</div>
+      <div class="stop-info">
+        <div class="stop-name">Depart San Francisco — 4:30 AM</div>
+        <div class="stop-why">Fill gas and prep breakfast/lunch the night before. Route: I-580E → CA-205 → CA-120E → Big Oak Flat entrance. Download Yosemite maps offline — no signal in the park.</div>
+        <div class="stop-meta"><span class="stop-tag tag-warn">Leave by 4:30 AM</span><span class="stop-tag tag-time">Sep 2</span></div>
+      </div>
+    </div>
+    <div class="drive-row">🚗 ~4 hrs · CA-120 through Sierra foothills · fill gas before Groveland</div>
+    <div class="stop-row main-stop">
+      <div class="stop-icon" style="background:var(--gold)">📸</div>
+      <div class="stop-info">
+        <div class="stop-name">Tunnel View — 8:45 AM</div>
+        <div class="stop-why">El Capitan left, Half Dome center, Bridalveil Fall right — the iconic glacial U-valley in one 180° panorama. Ansel Adams' most reproduced composition. Morning light is perfect at this hour.</div>
+        <div class="stop-meta"><span class="stop-tag tag-time">8:45 AM</span><span class="stop-tag tag-dur">30 min</span><span class="stop-tag tag-cost">Free (park pass)</span><span class="stop-tag tag-main">⭐ Main Stop</span></div>
+        <div class="stop-nav">
+          <a class="nav-btn" href="https://www.google.com/maps/dir/?api=1&destination=Tunnel+View+Yosemite+Valley+California&travelmode=driving" target="_blank">🧭 Navigate</a>
+        </div>
+      </div>
+    </div>
+    <div class="drive-row">5 min inside valley</div>
+    <div class="stop-row">
+      <div class="stop-icon d1-bg">🌊</div>
+      <div class="stop-info">
+        <div class="stop-name">Bridalveil Fall — 9:20 AM</div>
+        <div class="stop-why">Year-round waterfall. 0.5-mile flat walk to the base — you get misted. Note: waterfalls are very low in early September — valley views are still world-class.</div>
+        <div class="stop-meta"><span class="stop-tag tag-time">9:20 AM</span><span class="stop-tag tag-dur">45 min</span></div>
+        <div class="stop-nav">
+          <a class="nav-btn" href="https://www.google.com/maps/dir/?api=1&destination=Bridalveil+Fall+Parking+Yosemite&travelmode=driving" target="_blank">🧭 Park</a>
+        </div>
+      </div>
+    </div>
+    <div class="drive-row">Park once — use free valley shuttle from here</div>
+    <div class="stop-row main-stop">
+      <div class="stop-icon" style="background:var(--gold)">⛰️</div>
+      <div class="stop-info">
+        <div class="stop-name">Cook's Meadow + El Capitan Meadow — 10:00 AM</div>
+        <div class="stop-why">Best ground-level view of the 3,000-ft granite face. Binoculars to spot climbers on El Cap. Cook's Meadow gives the best valley granite and Half Dome panorama — easy walk on flat trail.</div>
+        <div class="stop-meta"><span class="stop-tag tag-time">10:00 AM</span><span class="stop-tag tag-dur">1 hr</span><span class="stop-tag tag-main">⭐ Main Stop</span></div>
+        <div class="stop-nav">
+          <a class="nav-btn" href="https://www.google.com/maps/dir/?api=1&destination=El+Capitan+Meadow+Yosemite&travelmode=driving" target="_blank">🧭 El Cap Meadow</a>
+          <a class="nav-btn" href="https://www.google.com/maps/dir/?api=1&destination=Cooks+Meadow+Yosemite+National+Park&travelmode=walking" target="_blank">🚶 Cook's Meadow</a>
+        </div>
+      </div>
+    </div>
+    <div class="drive-row">Shuttle · 10 min</div>
+    <div class="stop-row">
+      <div class="stop-icon d1-bg">💧</div>
+      <div class="stop-info">
+        <div class="stop-name">Lower Yosemite Fall Loop — 11:15 AM</div>
+        <div class="stop-why">Tallest waterfall in North America at 2,425 ft total. Worth a look even if mostly dry in September — the granite corridor and forest views are spectacular.</div>
+        <div class="stop-meta"><span class="stop-tag tag-time">11:15 AM</span><span class="stop-tag tag-dur">30 min</span><span class="stop-tag tag-cost">Free</span></div>
+        <div class="stop-nav">
+          <a class="nav-btn" href="https://www.google.com/maps/dir/?api=1&destination=Lower+Yosemite+Falls+Trailhead&travelmode=driving" target="_blank">🧭 Navigate</a>
+        </div>
+      </div>
+    </div>
+    <div class="drive-row">🍽 Picnic lunch beside the Merced River — pack food from SF · Use bear boxes</div>
+    <div class="stop-row dont-miss">
+      <div class="stop-icon" style="background:var(--d6)">🥾</div>
+      <div class="stop-info">
+        <div class="stop-name">Mist Trail to Vernal Fall Footbridge — 1:00 PM</div>
+        <div class="stop-why">Moderate 1.5-mile hike. Granite staircase through forest to the footbridge — turn around here (falls are low in September, going further adds 1+ hrs). The Merced Gorge view from the bridge is spectacular year-round.</div>
+        <div class="stop-meta"><span class="stop-tag tag-time">1:00 PM</span><span class="stop-tag tag-dur">1.5 hrs</span><span class="stop-tag tag-miss">Don't Miss</span></div>
+        <div class="stop-nav">
+          <a class="nav-btn green" href="https://www.google.com/maps/dir/?api=1&destination=Mist+Trail+Trailhead+Happy+Isles+Yosemite&travelmode=driving" target="_blank">🚶 Mist Trail Start</a>
+        </div>
+      </div>
+    </div>
+    <div class="drive-row">Final valley views: El Capitan Meadow → Valley View · 45 min</div>
+    <div class="stop-row">
+      <div class="stop-icon d1-bg">🚗</div>
+      <div class="stop-info">
+        <div class="stop-name">Drive to Knights Ferry — 3:45 PM</div>
+        <div class="stop-why">Exit via CA-120 W (Big Oak Flat Road). ~2 hours to Knights Ferry. Rivers Edge RV Park for overnight — confirm late check-in when you book.</div>
+        <div class="stop-meta"><span class="stop-tag tag-time">Arrive ~6:00 PM</span><span class="stop-tag tag-prebook">Pre-booked</span></div>
+        <div class="stop-nav">
+          <a class="nav-btn" href="https://www.google.com/maps/dir/?api=1&destination=Rivers+Edge+RV+Park+Knights+Ferry+California&travelmode=driving" target="_blank">🧭 Rivers Edge RV Park</a>
+        </div>
+      </div>
+    </div>
+    <div class="day-footer">
+      <div class="day-stat"><div class="dv">~285 mi</div><div class="dl">Drive</div></div>
+      <div class="day-stat"><div class="dv">~$175</div><div class="dl">Per Person</div></div>
+      <div class="day-stat"><div class="dv">75–85°F</div><div class="dl">Yosemite</div></div>
+      <div class="day-stat"><div class="dv">7:29 PM</div><div class="dl">Sunset</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- DAY 2 -->
+<div class="day-section" id="day2">
+  <div class="day-header d2-bg">
+    <div class="day-num-badge d2-bg"><div class="num">2</div><div class="lbl">Sep 3</div></div>
+    <div class="day-header-text">
+      <h2>Avenue of Giants → Humboldt Redwoods → Trinidad</h2>
+      <p>🚗 ~370 mi · 6.5–7 hrs · Longest Day — depart 5:30 AM</p>
+    </div>
+  </div>
+  <div class="day-body">
+    <div class="alert-box yellow" style="margin:0;border-radius:0">
+      <div class="alert-icon">⚠️</div>
+      <div><strong>Longest driving day.</strong> 13–14 hours total with stops. Trinidad sunset is aspirational. If running behind, skip Redwood Creek Overlook (least essential). Trade drivers every 2 hours.</div>
+    </div>
+    <div class="stop-row">
+      <div class="stop-icon d2-bg">🚗</div>
+      <div class="stop-info">
+        <div class="stop-name">Depart Knights Ferry — 5:30 AM</div>
+        <div class="stop-why">Route north: US-101 through Sacramento Valley. Morning fog common in Central Valley — headlights on.</div>
+        <div class="stop-meta"><span class="stop-tag tag-warn">Leave by 5:30 AM</span></div>
+      </div>
+    </div>
+    <div class="drive-row">🚗 ~5.5 hrs to Humboldt · Trade drivers · Fuel in Ukiah or Willits</div>
+    <div class="stop-row main-stop">
+      <div class="stop-icon" style="background:var(--gold)">🌲</div>
+      <div class="stop-info">
+        <div class="stop-name">Avenue of the Giants + Founders Grove — 11:00 AM</div>
+        <div class="stop-why">World's largest old-growth coast redwood forest. Trees 1,500–2,200 years old. Drive slowly on the 31-mile Hwy 254 scenic alternate. Founders Grove: Dyerville Giant's root ball stands 35 feet high. Press your palm on the bark — spongy, fire-resistant living bark.</div>
+        <div class="stop-meta"><span class="stop-tag tag-time">11:00 AM</span><span class="stop-tag tag-dur">1.5 hrs</span><span class="stop-tag tag-cost">Free</span><span class="stop-tag tag-main">⭐ Main Stop</span></div>
+        <div class="stop-nav">
+          <a class="nav-btn" href="https://www.google.com/maps/dir/?api=1&destination=Founders+Grove+Humboldt+Redwoods+State+Park&travelmode=driving" target="_blank">🧭 Founders Grove</a>
+          <a class="nav-btn" href="https://www.google.com/maps/dir/?api=1&destination=Avenue+of+the+Giants+Phillipsville+California&travelmode=driving" target="_blank">🧭 Avenue of Giants</a>
+        </div>
+      </div>
+    </div>
+    <div class="drive-row">🍽 Picnic along the Avenue · roadside pullout · Cooler lunch from Knights Ferry</div>
+    <div class="stop-row">
+      <div class="stop-icon d2-bg">🦌</div>
+      <div class="stop-info">
+        <div class="stop-name">Rockefeller Forest — 12:15 PM</div>
+        <div class="stop-why">Largest contiguous old-growth coast redwood forest on earth. Silence here is total. Short flat loop along Bull Creek.</div>
+        <div class="stop-meta"><span class="stop-tag tag-time">12:15 PM</span><span class="stop-tag tag-dur">45 min</span><span class="stop-tag tag-cost">Free</span></div>
+        <div class="stop-nav">
+          <a class="nav-btn" href="https://www.google.com/maps/dir/?api=1&destination=Rockefeller+Forest+Humboldt+Redwoods+State+Park&travelmode=driving" target="_blank">🧭 Navigate</a>
+        </div>
+      </div>
+    </div>
+    <div class="drive-row">~1.5 hrs north via US-101 toward Orick</div>
+    <div class="stop-row dont-miss">
+      <div class="stop-icon" style="background:var(--d6)">🌿</div>
+      <div class="stop-info">
+        <div class="stop-name">Lady Bird Johnson Grove — 2:45 PM</div>
+        <div class="stop-why">Dedicated 1969 by Nixon and Lady Bird Johnson. 1.4-mile loop through trees 500+ years old when Columbus reached America. Nurse logs, ancient burls. Small parking area — wait briefly if full.</div>
+        <div class="stop-meta"><span class="stop-tag tag-time">2:45 PM</span><span class="stop-tag tag-dur">1 hr</span><span class="stop-tag tag-cost">Free (ATB pass)</span><span class="stop-tag tag-miss">Don't Miss</span></div>
+        <div class="stop-nav">
+          <a class="nav-btn" href="https://www.google.com/maps/dir/?api=1&destination=Lady+Bird+Johnson+Grove+Redwood+National+Park&travelmode=driving" target="_blank">🧭 Navigate</a>
+        </div>
+      </div>
+    </div>
+    <div class="drive-row">Redwood Creek Overlook — 25 min (skip if behind schedule)</div>
+    <div class="stop-row">
+      <div class="stop-icon d2-bg">🌊</div>
+      <div class="stop-info">
+        <div class="stop-name">Trinidad State Beach — 5:30 PM (if timing works)</div>
+        <div class="stop-why">Sea stacks and dramatic cliffs. Sunset ~7:55 PM in September — you have time if you arrive by 5:30. Murphy's Market nearby for dinner supplies.</div>
+        <div class="stop-meta"><span class="stop-tag tag-time">5:30 PM</span><span class="stop-tag tag-dur">45 min</span><span class="stop-tag tag-cost">Free</span></div>
+        <div class="stop-nav">
+          <a class="nav-btn" href="https://www.google.com/maps/dir/?api=1&destination=Trinidad+State+Beach+California&travelmode=driving" target="_blank">🧭 Navigate</a>
+        </div>
+      </div>
+    </div>
+    <div class="stop-row prebook-stop">
+      <div class="stop-icon d3-bg">🏕️</div>
+      <div class="stop-info">
+        <div class="stop-name">Sylvan Harbor RV Camp, Trinidad — Overnight (≤ $150)</div>
+        <div class="stop-why">Cabin, camper, or tent site in Trinidad. Lighthouse Grill in Trinidad for dinner. Murphy's Market to restock breakfast and trail food for Day 3.</div>
+        <div class="stop-meta"><span class="stop-tag tag-cost">≤ $150/night</span><span class="stop-tag tag-prebook">Pre-Book Required</span></div>
+        <div class="stop-nav">
+          <a class="nav-btn" href="https://www.google.com/maps/dir/?api=1&destination=Sylvan+Harbor+RV+Park+Trinidad+California&travelmode=driving" target="_blank">🧭 Navigate</a>
+        </div>
+      </div>
+    </div>
+    <div class="day-footer">
+      <div class="day-stat"><div class="dv">~370 mi</div><div class="dl">Drive</div></div>
+      <div class="day-stat"><div class="dv">~$125</div><div class="dl">Per Person</div></div>
+      <div class="day-stat"><div class="dv">62–70°F</div><div class="dl">Humboldt</div></div>
+      <div class="day-stat"><div class="dv">7:52 PM</div><div class="dl">Sunset</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- DAY 3 -->
+<div class="day-section" id="day3">
+  <div class="day-header d3-bg">
+    <div class="day-num-badge d3-bg"><div class="num">3</div><div class="lbl">Sep 4</div></div>
+    <div class="day-header-text">
+      <h2>Fern Canyon → Prairie Creek → Jedediah Smith → Grants Pass</h2>
+      <p>🚗 ~220 mi · 4.5–5 hrs · Jurassic Forests + Smith River</p>
+    </div>
+  </div>
+  <div class="day-body">
+    <div class="alert-box red" style="margin:0;border-radius:0">
+      <div class="alert-icon">⚠️</div>
+      <div><strong>Fern Canyon rental car warning:</strong> Road to Gold Bluffs Beach is unpaved gravel with two stream crossings. Many rental agreements prohibit this. <strong>Confirm in writing with rental company before booking the permit.</strong> If not permitted: substitute Prairie Creek Foothill Trail + Big Tree loop (no permit needed).</div>
+    </div>
+    <div class="stop-row">
+      <div class="stop-icon d3-bg">🦌</div>
+      <div class="stop-info">
+        <div class="stop-name">Newton B. Drury Scenic Parkway + Big Tree Wayside — 7:00 AM</div>
+        <div class="stop-why">Quiet old-growth road through Prairie Creek Redwoods. Watch for Roosevelt elk — September pre-rut, bulls are active. Big Tree Wayside is a 300-ft-circumference coast redwood just off the road.</div>
+        <div class="stop-meta"><span class="stop-tag tag-time">7:00 AM</span><span class="stop-tag tag-dur">45 min</span><span class="stop-tag tag-cost">Free</span></div>
+        <div class="stop-nav">
+          <a class="nav-btn" href="https://www.google.com/maps/dir/?api=1&destination=Newton+B+Drury+Scenic+Parkway+Prairie+Creek+Redwoods&travelmode=driving" target="_blank">🧭 Navigate</a>
+        </div>
+      </div>
+    </div>
+    <div class="drive-row">30 min via Davison Rd (unpaved) to Gold Bluffs Beach — confirm rental allows this first</div>
+    <div class="stop-row dont-miss">
+      <div class="stop-icon" style="background:var(--d6)">🌿</div>
+      <div class="stop-info">
+        <div class="stop-name">Fern Canyon + Gold Bluffs Beach — 8:00 AM</div>
+        <div class="stop-why">50-foot-deep slot canyon, walls entirely covered in prehistoric ferns. Filming location for Jurassic Park 2. Walk through ankle-deep creek between towering fern walls — the light diffusing green through the ceiling looks like you're underwater. One of the most otherworldly places in the US.</div>
+        <div class="stop-meta"><span class="stop-tag tag-time">8:00 AM</span><span class="stop-tag tag-dur">1.5–2 hrs</span><span class="stop-tag tag-cost">$12/vehicle permit</span><span class="stop-tag tag-miss">Don't Miss</span><span class="stop-tag tag-prebook">Permit Required</span></div>
+        <div class="stop-nav">
+          <a class="nav-btn" href="https://www.google.com/maps/dir/?api=1&destination=Fern+Canyon+Prairie+Creek+Redwoods+California&travelmode=driving" target="_blank">🧭 Navigate</a>
+          <a class="nav-btn orange" href="https://www.recreation.gov" target="_blank">🎫 Book Permit</a>
+        </div>
+      </div>
+    </div>
+    <div class="drive-row">~1 hr north on US-101 through Crescent City — fuel here before US-199</div>
+    <div class="stop-row main-stop">
+      <div class="stop-icon" style="background:var(--gold)">🌊</div>
+      <div class="stop-info">
+        <div class="stop-name">Stout Grove + Smith River — Jedediah Smith — 12:00 PM</div>
+        <div class="stop-why">Short cinematic old-growth walk beside the emerald Smith River. Stout Grove: cathedral redwoods with the clearest water river in California running alongside. Swim or wade in calm sections — color is brilliantly emerald green in September.</div>
+        <div class="stop-meta"><span class="stop-tag tag-time">12:00 PM</span><span class="stop-tag tag-dur">1 hr 15 min</span><span class="stop-tag tag-cost">Free (ATB pass)</span><span class="stop-tag tag-main">⭐ Main Stop</span></div>
+        <div class="stop-nav">
+          <a class="nav-btn" href="https://www.google.com/maps/dir/?api=1&destination=Stout+Grove+Jedediah+Smith+Redwoods+California&travelmode=driving" target="_blank">🧭 Stout Grove</a>
+          <a class="nav-btn green" href="https://www.google.com/maps/dir/?api=1&destination=Smith+River+Jedediah+Smith+Redwoods+State+Park&travelmode=walking" target="_blank">💧 Smith River</a>
+        </div>
+      </div>
+    </div>
+    <div class="drive-row">🍽 Good Harvest Cafe, Crescent City — practical late-lunch stop</div>
+    <div class="drive-row">~2 hrs on US-199 to Grants Pass — winding scenic road · fuel first in Crescent City</div>
+    <div class="stop-row prebook-stop">
+      <div class="stop-icon d3-bg">🏕️</div>
+      <div class="stop-info">
+        <div class="stop-name">Jumpoff Joe Creek Campground, Grants Pass — Overnight (≤ $130)</div>
+        <div class="stop-why">Yurt, canvas tent, or cabin. Wild River Brewing in Grants Pass for dinner — best craft beer and pizza on the route. Early night; tomorrow morning is Crater Lake.</div>
+        <div class="stop-meta"><span class="stop-tag tag-cost">≤ $130/night</span><span class="stop-tag tag-prebook">Pre-Book Required</span></div>
+        <div class="stop-nav">
+          <a class="nav-btn" href="https://www.google.com/maps/dir/?api=1&destination=Jumpoff+Joe+Creek+Campground+Grants+Pass+Oregon&travelmode=driving" target="_blank">🧭 Navigate</a>
+        </div>
+      </div>
+    </div>
+    <div class="day-footer">
+      <div class="day-stat"><div class="dv">~220 mi</div><div class="dl">Drive</div></div>
+      <div class="day-stat"><div class="dv">~$95</div><div class="dl">Per Person</div></div>
+      <div class="day-stat"><div class="dv">65–75°F</div><div class="dl">Redwoods</div></div>
+      <div class="day-stat"><div class="dv">7:48 PM</div><div class="dl">Sunset (OR)</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- DAY 4 -->
+<div class="day-section" id="day4">
+  <div class="day-header d4-bg">
+    <div class="day-num-badge d4-bg"><div class="num">4</div><div class="lbl">Sep 5</div></div>
+    <div class="day-header-text">
+      <h2>Crater Lake → Smith Rock (optional) → Bend</h2>
+      <p>🚗 ~205 mi · 4–4.5 hrs · Deepest Lake in the US</p>
+    </div>
+  </div>
+  <div class="day-body">
+    <div class="alert-box blue" style="margin:0;border-radius:0">
+      <div class="alert-icon">ℹ️</div>
+      <div><strong>Crater Lake 2026:</strong> East Rim construction = no complete Rim Drive loop. Cleetwood Cove and all lake access/swimming CLOSED all 2026. West Rim and North Entrance are fully open. The lake is still absolutely stunning from the rim — 1,943 ft deep, intense sapphire blue.</div>
+    </div>
+    <div class="stop-row">
+      <div class="stop-icon d4-bg">🚗</div>
+      <div class="stop-info">
+        <div class="stop-name">Depart Grants Pass — 6:00 AM</div>
+        <div class="stop-why">Route: OR-62 east and south entrance to Crater Lake. Pack a full picnic — park dining is very limited and expensive.</div>
+        <div class="stop-meta"><span class="stop-tag tag-warn">6:00 AM departure</span></div>
+      </div>
+    </div>
+    <div class="drive-row">~2 hrs via OR-62 · Enter via south / Annie Spring entrance</div>
+    <div class="stop-row main-stop">
+      <div class="stop-icon" style="background:var(--gold)">🌋</div>
+      <div class="stop-info">
+        <div class="stop-name">Rim Village + Sinnott Memorial Overlook — 8:15 AM</div>
+        <div class="stop-why">First panoramic views of the caldera. Crater Lake formed ~7,700 years ago when Mt. Mazama erupted and collapsed. The water is 1,943 feet deep — deepest in North America. The blue is impossible to photograph accurately — it is more intense in person.</div>
+        <div class="stop-meta"><span class="stop-tag tag-time">8:15 AM</span><span class="stop-tag tag-dur">45 min</span><span class="stop-tag tag-main">⭐ Main Stop</span></div>
+        <div class="stop-nav">
+          <a class="nav-btn" href="https://www.google.com/maps/dir/?api=1&destination=Rim+Village+Crater+Lake+National+Park+Oregon&travelmode=driving" target="_blank">🧭 Rim Village</a>
+        </div>
+      </div>
+    </div>
+    <div class="drive-row">Drive West Rim Road</div>
+    <div class="stop-row dont-miss">
+      <div class="stop-icon" style="background:var(--d6)">🥾</div>
+      <div class="stop-info">
+        <div class="stop-name">Watchman Peak Trail — 9:15 AM</div>
+        <div class="stop-why">Moderate 1.6-mile hike, best elevated lake viewpoint on the accessible West Rim. 300 ft gain. You see the full caldera, Wizard Island, and on clear days Mt. Shasta and Mt. McLoughlin. One of the best panoramas on the entire route.</div>
+        <div class="stop-meta"><span class="stop-tag tag-time">9:15 AM</span><span class="stop-tag tag-dur">1–1.5 hrs</span><span class="stop-tag tag-miss">Don't Miss</span></div>
+        <div class="stop-nav">
+          <a class="nav-btn green" href="https://www.google.com/maps/dir/?api=1&destination=Watchman+Peak+Trail+Crater+Lake+Oregon&travelmode=driving" target="_blank">🥾 Watchman Trail</a>
+        </div>
+      </div>
+    </div>
+    <div class="drive-row">West Rim viewpoints: Discovery Point · Watchman Overlook · North Junction — all accessible</div>
+    <div class="stop-row">
+      <div class="stop-icon d4-bg">🍱</div>
+      <div class="stop-info">
+        <div class="stop-name">Picnic + Depart via North Entrance — 12:15 PM</div>
+        <div class="stop-why">Pack food — park dining is limited. North Entrance to OR-138 E to US-97 N toward Bend.</div>
+        <div class="stop-meta"><span class="stop-tag tag-time">12:15 PM</span></div>
+      </div>
+    </div>
+    <div class="drive-row">~1.5–2 hrs to Bend via OR-138 E → US-97 N</div>
+    <div class="stop-row">
+      <div class="stop-icon d4-bg">🏜️</div>
+      <div class="stop-info">
+        <div class="stop-name">Smith Rock State Park (optional) — 4:30 PM</div>
+        <div class="stop-why">Volcanic tuff rock formations rising 800 ft from the Crooked River. Rim Rock Trail for golden-hour views. Internationally famous rock climbing area. Skip if tired or smoky — this is a bonus stop.</div>
+        <div class="stop-meta"><span class="stop-tag tag-time">4:30–5:30 PM</span><span class="stop-tag tag-dur">1 hr</span><span class="stop-tag tag-cost">$5 parking</span></div>
+        <div class="stop-nav">
+          <a class="nav-btn" href="https://www.google.com/maps/dir/?api=1&destination=Smith+Rock+State+Park+Terrebonne+Oregon&travelmode=driving" target="_blank">🧭 Smith Rock</a>
+        </div>
+      </div>
+    </div>
+    <div class="stop-row prebook-stop">
+      <div class="stop-icon" style="background:#5c6bc0">🏨</div>
+      <div class="stop-info">
+        <div class="stop-name">Budget Motel, Bend / Redmond — Overnight (≤ $140)</div>
+        <div class="stop-why">Free parking, free cancellation. Bend food-cart pods for dinner — best value on the route, $10–15/person for excellent food.</div>
+        <div class="stop-meta"><span class="stop-tag tag-cost">≤ $140/night</span><span class="stop-tag tag-prebook">Book Now</span></div>
+        <div class="stop-nav">
+          <a class="nav-btn" href="https://www.google.com/maps/dir/?api=1&destination=Bend+Oregon&travelmode=driving" target="_blank">🧭 Bend</a>
+        </div>
+      </div>
+    </div>
+    <div class="day-footer">
+      <div class="day-stat"><div class="dv">~205 mi</div><div class="dl">Drive</div></div>
+      <div class="day-stat"><div class="dv">~$120</div><div class="dl">Per Person</div></div>
+      <div class="day-stat"><div class="dv">62–70°F</div><div class="dl">Crater Lake</div></div>
+      <div class="day-stat"><div class="dv">7:42 PM</div><div class="dl">Sunset</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- DAY 5 -->
+<div class="day-section" id="day5">
+  <div class="day-header d5-bg">
+    <div class="day-num-badge d5-bg"><div class="num">5</div><div class="lbl">Sep 6</div></div>
+    <div class="day-header-text">
+      <h2>Mt. Hood → Timberline → Columbia Gorge → Tenino</h2>
+      <p>🚗 ~275 mi · 5.5–6 hrs · Alpine + Waterfalls</p>
+    </div>
+  </div>
+  <div class="day-body">
+    <div class="alert-box red" style="margin:0;border-radius:0">
+      <div class="alert-icon">🔥</div>
+      <div><strong>Check before departure:</strong> Mt. Hood has active fire closures. Verify on TripCheck Oregon + InciWeb morning of Day 5. Choose OR-35 vs US-26 based on fire conditions. Multnomah Falls permit doesn't guarantee parking — I-84 shuttle from Rooster Rock is backup.</div>
+    </div>
+    <div class="stop-row">
+      <div class="stop-icon d5-bg">🚗</div>
+      <div class="stop-info">
+        <div class="stop-name">Depart Bend — 5:30 AM</div>
+        <div class="stop-why">Calm morning = best reflection conditions at Trillium Lake. Route to Trillium: US-97 N → US-26 W. Download TripCheck Oregon for live fire/closure alerts.</div>
+        <div class="stop-meta"><span class="stop-tag tag-warn">5:30 AM departure</span></div>
+      </div>
+    </div>
+    <div class="drive-row">~2 hrs to Trillium Lake via US-97 N → US-26 W</div>
+    <div class="stop-row dont-miss">
+      <div class="stop-icon" style="background:var(--d6)">🪞</div>
+      <div class="stop-info">
+        <div class="stop-name">Trillium Lake — 7:30 AM</div>
+        <div class="stop-why">Classic Mt. Hood reflection in the lake — the most photographed view of the volcano. Arrive early to beat crowds and get still water for reflections. $10 day-use fee. Calm mornings only — wind destroys the reflection.</div>
+        <div class="stop-meta"><span class="stop-tag tag-time">7:30 AM</span><span class="stop-tag tag-dur">1–1.5 hrs</span><span class="stop-tag tag-cost">$10 day use</span><span class="stop-tag tag-miss">Don't Miss</span></div>
+        <div class="stop-nav">
+          <a class="nav-btn" href="https://www.google.com/maps/dir/?api=1&destination=Trillium+Lake+Mt+Hood+Oregon&travelmode=driving" target="_blank">🧭 Trillium Lake</a>
+        </div>
+      </div>
+    </div>
+    <div class="drive-row">20 min up to Timberline Lodge</div>
+    <div class="stop-row main-stop">
+      <div class="stop-icon" style="background:var(--gold)">🏔️</div>
+      <div class="stop-info">
+        <div class="stop-name">Timberline Lodge — 9:15 AM</div>
+        <div class="stop-why">Built 1937 by FDR's WPA — 500 unemployed craftspeople built this by hand in 15 months. The exterior is the Overlook Hotel from The Shining. At 6,000 ft on an active volcano. Every inch hand-carved, hand-forged, hand-woven. Breakfast at Ram's Head Bar (huckleberry pancakes are worth it). Walk the Timberline Trail to treeline for glacier views.</div>
+        <div class="stop-meta"><span class="stop-tag tag-time">9:15 AM</span><span class="stop-tag tag-dur">1.5 hrs</span><span class="stop-tag tag-cost">Free entry · Breakfast ~$13</span><span class="stop-tag tag-main">⭐ Main Stop</span></div>
+        <div class="stop-nav">
+          <a class="nav-btn" href="https://www.google.com/maps/dir/?api=1&destination=Timberline+Lodge+Government+Camp+Oregon&travelmode=driving" target="_blank">🧭 Navigate</a>
+        </div>
+      </div>
+    </div>
+    <div class="drive-row">~1.5 hrs toward Columbia River Gorge · Check fire closure status before choosing route</div>
+    <div class="stop-row main-stop">
+      <div class="stop-icon" style="background:var(--gold)">💧</div>
+      <div class="stop-info">
+        <div class="stop-name">Multnomah Falls + Benson Bridge — 1:00 PM</div>
+        <div class="stop-why">620-foot two-tiered waterfall, most visited natural site in the Pacific Northwest. The 1914 Benson Bridge spans the gorge between both tiers — stand in the spray. Fed by perennial underground springs, not surface runoff, so it runs year-round at full force.</div>
+        <div class="stop-meta"><span class="stop-tag tag-time">1:00 PM</span><span class="stop-tag tag-dur">1 hr</span><span class="stop-tag tag-cost">Free (with permit)</span><span class="stop-tag tag-main">⭐ Main Stop</span><span class="stop-tag tag-prebook">Permit Required</span></div>
+        <div class="stop-nav">
+          <a class="nav-btn" href="https://www.google.com/maps/dir/?api=1&destination=Multnomah+Falls+Oregon+I-84+Exit+31&travelmode=driving" target="_blank">🧭 Park (I-84 Exit 31)</a>
+          <a class="nav-btn green" href="https://www.google.com/maps/dir/?api=1&destination=Benson+Bridge+Multnomah+Falls+Oregon&travelmode=walking" target="_blank">🚶 Benson Bridge</a>
+        </div>
+      </div>
+    </div>
+    <div class="drive-row">~2.5 hrs via US-30 W → I-5 N to Tenino/Offut Lake</div>
+    <div class="stop-row prebook-stop">
+      <div class="stop-icon" style="background:#5c6bc0">🏕️</div>
+      <div class="stop-info">
+        <div class="stop-name">Offut Lake Resort, Tenino — Overnight (≤ $150)</div>
+        <div class="stop-why">Cabin near Olympia. Backup: Kemp Olson Memorial Park tent site. Tonight: pack breakfast, coffee, and lunch for tomorrow's pre-dawn departure to Rainier. Set alarm for 4:30 AM.</div>
+        <div class="stop-meta"><span class="stop-tag tag-cost">≤ $150/night</span><span class="stop-tag tag-prebook">Pre-Book Required</span><span class="stop-tag tag-warn">Pre-dawn departure tomorrow</span></div>
+        <div class="stop-nav">
+          <a class="nav-btn" href="https://www.google.com/maps/dir/?api=1&destination=Offut+Lake+Resort+Tenino+Washington&travelmode=driving" target="_blank">🧭 Navigate</a>
+        </div>
+      </div>
+    </div>
+    <div class="day-footer">
+      <div class="day-stat"><div class="dv">~275 mi</div><div class="dl">Drive</div></div>
+      <div class="day-stat"><div class="dv">~$140</div><div class="dl">Per Person</div></div>
+      <div class="day-stat"><div class="dv">65–75°F</div><div class="dl">Hood/Gorge</div></div>
+      <div class="day-stat"><div class="dv">7:35 PM</div><div class="dl">Sunset</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- DAY 6 -->
+<div class="day-section" id="day6">
+  <div class="day-header d6-bg">
+    <div class="day-num-badge d6-bg"><div class="num">6</div><div class="lbl">Sep 7</div></div>
+    <div class="day-header-text">
+      <h2>Mt. Rainier Paradise → Seattle</h2>
+      <p>🚗 ~195 mi · 4–4.5 hrs (+Labor Day traffic) · LABOR DAY</p>
+    </div>
+  </div>
+  <div class="day-body">
+    <div class="alert-box red" style="margin:0;border-radius:0">
+      <div class="alert-icon">🚨</div>
+      <div><strong>Labor Day warning — do not underestimate this.</strong> Busiest day of the year at Rainier. Paradise parking fills by 8–9 AM. Reaching Nisqually Entrance before 7:00 AM is mandatory, not optional. Sunrise and White River closed (Grand Park 2 Fire). I-5 into Seattle is heavy from 2 PM onward.</div>
+    </div>
+    <div class="stop-row">
+      <div class="stop-icon d6-bg">🌙</div>
+      <div class="stop-info">
+        <div class="stop-name">Depart Tenino — 4:45 AM</div>
+        <div class="stop-why">Dark departure — headlamps needed. Pack everything the night before: coffee, breakfast, lunch. Route: Hwy 507 → Hwy 702 → Hwy 706 → Nisqually entrance.</div>
+        <div class="stop-meta"><span class="stop-tag tag-warn">4:45 AM — non-negotiable</span></div>
+      </div>
+    </div>
+    <div class="drive-row">~1.25 hrs to Nisqually entrance</div>
+    <div class="stop-row">
+      <div class="stop-icon d6-bg">💧</div>
+      <div class="stop-info">
+        <div class="stop-name">Longmire + Christine/Narada Falls — 6:45 AM</div>
+        <div class="stop-why">Historic 1920s NPS district. Roadside photography on the climb toward Paradise. Narada Falls: 168-foot fan waterfall over basalt — morning mist creates rainbows. 5-minute walk from road.</div>
+        <div class="stop-meta"><span class="stop-tag tag-time">6:45 AM</span><span class="stop-tag tag-dur">45 min</span></div>
+        <div class="stop-nav">
+          <a class="nav-btn" href="https://www.google.com/maps/dir/?api=1&destination=Longmire+Mount+Rainier+National+Park&travelmode=driving" target="_blank">🧭 Longmire</a>
+          <a class="nav-btn" href="https://www.google.com/maps/dir/?api=1&destination=Narada+Falls+Mount+Rainier+National+Park&travelmode=driving" target="_blank">🧭 Narada Falls</a>
+        </div>
+      </div>
+    </div>
+    <div class="drive-row">10 min up</div>
+    <div class="stop-row dont-miss">
+      <div class="stop-icon" style="background:var(--d6)">🪞</div>
+      <div class="stop-info">
+        <div class="stop-name">Reflection Lakes — 8:00 AM</div>
+        <div class="stop-why">Perfect mirror image of Mt. Rainier. The most reproduced Rainier photograph is taken from this exact spot. Only visit if the mountain is clear — skip if clouded in. Subalpine wildflowers (paintbrush, aster, lupine) likely still blooming in September.</div>
+        <div class="stop-meta"><span class="stop-tag tag-time">8:00 AM</span><span class="stop-tag tag-dur">25 min</span><span class="stop-tag tag-warn">Must arrive before 9 AM for still water</span><span class="stop-tag tag-miss">Don't Miss</span></div>
+        <div class="stop-nav">
+          <a class="nav-btn" href="https://www.google.com/maps/dir/?api=1&destination=Reflection+Lakes+Mount+Rainier+National+Park&travelmode=driving" target="_blank">🧭 Navigate</a>
+        </div>
+      </div>
+    </div>
+    <div class="drive-row">10 min to Paradise</div>
+    <div class="stop-row main-stop">
+      <div class="stop-icon" style="background:var(--gold)">🏔️</div>
+      <div class="stop-info">
+        <div class="stop-name">Paradise — 8:45 AM to 11:00 AM</div>
+        <div class="stop-why">5,400 feet on the flanks of a 14,411-ft active volcano. Alpine meadows, glacier views, volcanic geology all at once. Myrtle Falls loop (1 mi, 30 min) — waterfall + glacier view. Nisqually Vista loop (1.2 mi, 45 min) — overlooks the retreating Nisqually Glacier. Don't attempt snowfields — stay on trails.</div>
+        <div class="stop-meta"><span class="stop-tag tag-time">8:45–11:00 AM</span><span class="stop-tag tag-dur">~2 hrs</span><span class="stop-tag tag-cost">ATB pass (saves $30)</span><span class="stop-tag tag-main">⭐ Final Highlight</span></div>
+        <div class="stop-nav">
+          <a class="nav-btn" href="https://www.google.com/maps/dir/?api=1&destination=Paradise+Mount+Rainier+National+Park+Washington&travelmode=driving" target="_blank">🧭 Paradise</a>
+          <a class="nav-btn green" href="https://www.google.com/maps/dir/?api=1&destination=Myrtle+Falls+Trail+Mount+Rainier&travelmode=walking" target="_blank">🚶 Myrtle Falls</a>
+          <a class="nav-btn" href="https://www.google.com/maps/dir/?api=1&destination=Nisqually+Vista+Trail+Paradise+Mount+Rainier&travelmode=walking" target="_blank">🚶 Nisqually Vista</a>
+        </div>
+      </div>
+    </div>
+    <div class="drive-row">🚗 Depart by 11:00 AM sharp · Hwy 706W → Hwy 7N → Hwy 512W → I-5N · 2.5–3.5 hrs with Labor Day traffic</div>
+    <div class="stop-row">
+      <div class="stop-icon d6-bg">🏙️</div>
+      <div class="stop-info">
+        <div class="stop-name">Arrive Seattle — 3:30–4:30 PM</div>
+        <div class="stop-why">Return rental car. Pike Place Market (closes 6 PM) is walking distance from most downtown drop-offs. Seattle waterfront, Space Needle nearby. Celebrate — you did it.</div>
+        <div class="stop-meta"><span class="stop-tag tag-time">3:30–4:30 PM</span></div>
+        <div class="stop-nav">
+          <a class="nav-btn" href="https://www.google.com/maps/dir/?api=1&destination=Pike+Place+Market+Seattle+Washington&travelmode=driving" target="_blank">🧭 Pike Place Market</a>
+        </div>
+      </div>
+    </div>
+    <div class="day-footer">
+      <div class="day-stat"><div class="dv">~195 mi</div><div class="dl">Drive</div></div>
+      <div class="day-stat"><div class="dv">~$95</div><div class="dl">Per Person</div></div>
+      <div class="day-stat"><div class="dv">52–65°F</div><div class="dl">Paradise</div></div>
+      <div class="day-stat"><div class="dv">11:00 AM</div><div class="dl">Leave Paradise</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- WEATHER SECTION -->
+<div class="weather-alert">
+  <strong>⚡ Weather Updated Aug 26, 2026</strong> — Historical averages + current 7-day forecasts for Sep 2–7. Check weather.gov for final forecasts 48 hrs before departure. Fire conditions: verify InciWeb + TripCheck Oregon morning of Day 5.
+</div>
+<div class="weather-section">
+  <div class="weather-header">
+    <h2>🌤️ Weather Forecast — Sep 2–7, 2026</h2>
+    <p>Historical averages · Verify at weather.gov 48 hrs before each day</p>
+  </div>
+  <div class="weather-row">
+    <div class="weather-day" style="color:var(--d1)">Day 1</div>
+    <div class="weather-icon">☀️</div>
+    <div style="flex:1">
+      <div class="weather-loc">Yosemite Valley (4,000 ft)</div>
+      <div class="weather-detail">Dry, sunny. Waterfalls very low in Sep — valley views world-class. Pack sunscreen. Afternoon can be warm. Night cools sharply.</div>
+    </div>
+    <div class="weather-temp">75–85°F / 48°F</div>
+  </div>
+  <div class="weather-row">
+    <div class="weather-day" style="color:var(--d2)">Day 2</div>
+    <div class="weather-icon">🌫️</div>
+    <div style="flex:1">
+      <div class="weather-loc">Humboldt Redwoods + Trinidad Coast</div>
+      <div class="weather-detail">Marine layer morning fog — typically burns off by 11 AM. Inside redwood groves: 10–15°F cooler, always dim. Trinidad: sea breeze, fresh.</div>
+    </div>
+    <div class="weather-temp">62–70°F / 52°F</div>
+  </div>
+  <div class="weather-row">
+    <div class="weather-day" style="color:var(--d3)">Day 3</div>
+    <div class="weather-icon">🌤️</div>
+    <div style="flex:1">
+      <div class="weather-loc">NorCal Redwoods → Grants Pass, OR</div>
+      <div class="weather-detail">Coastal fog clears by afternoon. Fern Canyon: always shaded and cool (55°F inside canyon). Grants Pass: warm and dry. Smith River water ~65°F — swimmable.</div>
+    </div>
+    <div class="weather-temp">65–78°F / 50°F</div>
+  </div>
+  <div class="weather-row">
+    <div class="weather-day" style="color:var(--d4)">Day 4</div>
+    <div class="weather-icon">⛅</div>
+    <div style="flex:1">
+      <div class="weather-loc">Crater Lake (6,178 ft rim) → Bend, OR</div>
+      <div class="weather-detail">Crater Lake: crisp at rim, possible afternoon clouds. Watch for thunder in late afternoon. Bring layers — rim is 10°F colder than Grants Pass. Bend: very dry, sunny.</div>
+    </div>
+    <div class="weather-temp">62–70°F rim / 75–85°F Bend</div>
+  </div>
+  <div class="weather-row">
+    <div class="weather-day" style="color:var(--d5)">Day 5</div>
+    <div class="weather-icon">🌤️</div>
+    <div style="flex:1">
+      <div class="weather-loc">Mt. Hood (6,000 ft) → Columbia Gorge → Tenino</div>
+      <div class="weather-detail">🔥 VERIFY FIRE CONDITIONS. Trillium Lake: calm mornings for reflection — wind picks up by 9 AM. Columbia Gorge: strong east winds (50+ mph possible). Multnomah Falls: spray zone — bring rain shell.</div>
+    </div>
+    <div class="weather-temp">60–72°F Hood / 75°F Gorge</div>
+  </div>
+  <div class="weather-row">
+    <div class="weather-day" style="color:var(--d6)">Day 6</div>
+    <div class="weather-icon">⛅</div>
+    <div style="flex:1">
+      <div class="weather-loc">Mt. Rainier Paradise (5,400 ft) → Seattle</div>
+      <div class="weather-detail">Paradise: morning often clear, afternoon clouds develop. Dress in layers — 42°F at dawn, 60°F by 10 AM. Wildflowers still blooming. Bring rain shell — weather changes fast at altitude. Seattle: mild, ~70°F.</div>
+    </div>
+    <div class="weather-temp">52–65°F Paradise / 68–72°F Seattle</div>
+  </div>
+</div>
+
+<!-- BUDGET SECTION -->
+<div class="budget-section">
+  <div class="budget-header"><h2>💰 Budget Breakdown</h2><p>Per person · 2 travelers sharing costs</p></div>
+  <div class="budget-row"><div class="bl">🚗 Rental Car (share · one-way SF→SEA)</div><div class="bv">~$150</div></div>
+  <div class="budget-row"><div class="bl">⛽ Gas (~1,550 miles · ~30 mpg)</div><div class="bv">~$125</div></div>
+  <div class="budget-row"><div class="bl">🏕️ Lodging (5 nights · shared)</div><div class="bv">≤$350</div></div>
+  <div class="budget-row"><div class="bl">🍽️ Food (6 days)</div><div class="bv">~$180</div></div>
+  <div class="budget-row"><div class="bl">🎫 America the Beautiful Pass</div><div class="bv">$40–125</div></div>
+  <div class="budget-row"><div class="bl">🎫 Fern Canyon permit + other fees</div><div class="bv">~$15</div></div>
+  <div class="budget-row"><div class="bl">🔄 Contingency (10%)</div><div class="bv">~$95</div></div>
+  <div class="budget-total"><div class="bl">TOTAL / PERSON</div><div class="bv">~$950</div></div>
+</div>
+
+<div class="alert-box yellow" style="margin:0 16px 16px">
+  <div class="alert-icon">💡</div>
+  <div><strong>Budget tips:</strong> Packed breakfasts and lunches every day. One tourist-area restaurant dinner breaks the food budget. Bend food-cart pods ($10–15/person) are the best value dinners on the route. Nonresident America the Beautiful Pass is $250 — offset by tent backup sites two nights if needed.</div>
+</div>
+
+<footer>
+  SF → Seattle Road Trip · September 2–7, 2026 · 2 People<br>
+  <span style="opacity:.6">Updated Aug 26, 2026 · abhiramgorle.github.io/sf-seattle-road-trip-2026</span>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+var CARTO_KEY = 'cb1_29ui_1_77b1b615653860c1c4f878f7';
+
+var map = L.map('map', {zoomControl:true, scrollWheelZoom:false}).setView([43, -121.5], 5);
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=' + CARTO_KEY, {
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+  subdomains: 'abcd',
+  maxZoom: 20
+}).addTo(map);
+
+var colors = {0:'#334155', 1:'#e04b2c', 2:'#e07a2c', 3:'#2c9e4b', 4:'#2c6be0', 5:'#9b2ce0', 6:'#e02c7a'};
+
+function makePin(label, color) {
+  return L.divIcon({
+    className: '',
+    html: '<div style="width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;background:' + color + ';box-shadow:0 2px 8px rgba(0,0,0,.45);border:2px solid rgba(255,255,255,.85);letter-spacing:-0.5px">' + label + '</div>',
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+    popupAnchor: [0, -16]
+  });
+}
+
+// Route segments by day with colors
+var segments = [
+  // Day 1: SF → Yosemite → Knights Ferry
+  {day:1, coords:[[37.7749,-122.4194],[37.7163,-119.6780],[37.7553,-119.5969],[37.7489,-119.5889],[37.8299,-120.6657]]},
+  // Day 2: Knights Ferry → Humboldt → Trinidad
+  {day:2, coords:[[37.8299,-120.6657],[40.2918,-123.9889],[40.3483,-123.9261],[41.0569,-124.1430]]},
+  // Day 3: Trinidad → Fern Canyon → Jedediah Smith → Grants Pass
+  {day:3, coords:[[41.0569,-124.1430],[41.3935,-124.0674],[41.7978,-124.0672],[42.4393,-123.3284]]},
+  // Day 4: Grants Pass → Crater Lake → Smith Rock → Bend
+  {day:4, coords:[[42.4393,-123.3284],[42.9446,-122.1090],[44.3676,-121.1424],[44.0582,-121.3153]]},
+  // Day 5: Bend → Trillium Lake → Timberline → Multnomah Falls → Tenino
+  {day:5, coords:[[44.0582,-121.3153],[45.2763,-121.7451],[45.3311,-121.7098],[45.5762,-122.1158],[46.8637,-122.7765]]},
+  // Day 6: Tenino → Rainier → Seattle
+  {day:6, coords:[[46.8637,-122.7765],[46.7681,-121.7305],[46.7861,-121.7365],[47.6062,-122.3321]]}
+];
+
+segments.forEach(function(seg) {
+  L.polyline(seg.coords, {
+    color: colors[seg.day],
+    weight: 3.5,
+    opacity: 0.8,
+    dashArray: null
+  }).addTo(map);
+});
+
+// All key stops
+var stops = [
+  [37.7749,-122.4194,'SF', 0,'San Francisco','<strong>Start</strong><br>Depart 4:30 AM · Sep 2'],
+  [37.7163,-119.6780,'TV', 1,'Tunnel View','<strong>Day 1 · Tunnel View</strong><br>El Capitan + Half Dome panorama'],
+  [37.7553,-119.5969,'YF', 1,'Yosemite Valley','<strong>Day 1 · Yosemite Falls + Valley Floor</strong><br>El Cap Meadow · Mist Trail'],
+  [37.8299,-120.6657,'KF', 1,'Knights Ferry','<strong>Day 1 · Overnight</strong><br>Rivers Edge RV Park'],
+  [40.3483,-123.9261,'HR', 2,'Founders Grove','<strong>Day 2 · Founders Grove</strong><br>World\'s largest old-growth redwoods'],
+  [40.2918,-123.9889,'AG', 2,'Avenue of Giants','<strong>Day 2 · Avenue of the Giants</strong><br>31-mile scenic redwood drive'],
+  [41.0569,-124.1430,'TR', 2,'Trinidad','<strong>Day 2 · Overnight</strong><br>Sylvan Harbor, Trinidad CA'],
+  [41.3935,-124.0674,'FC', 3,'Fern Canyon','<strong>Day 3 · Fern Canyon</strong><br>Jurassic Park 2 · Permit required'],
+  [41.7978,-124.0672,'JS', 3,'Jedediah Smith','<strong>Day 3 · Jedediah Smith Redwoods</strong><br>Stout Grove + Smith River'],
+  [42.4393,-123.3284,'GP', 3,'Grants Pass','<strong>Day 3 · Overnight</strong><br>Jumpoff Joe Creek CG'],
+  [42.9446,-122.1090,'CL', 4,'Crater Lake','<strong>Day 4 · Crater Lake</strong><br>Watchman Peak · West Rim open'],
+  [44.3676,-121.1424,'SR', 4,'Smith Rock','<strong>Day 4 · Smith Rock (optional)</strong><br>Golden hour on the formations'],
+  [44.0582,-121.3153,'BE', 4,'Bend','<strong>Day 4 · Overnight</strong><br>Bend/Redmond, OR'],
+  [45.2763,-121.7451,'TL', 5,'Trillium Lake','<strong>Day 5 · Trillium Lake</strong><br>Mt. Hood reflection — arrive early'],
+  [45.3311,-121.7098,'TI', 5,'Timberline Lodge','<strong>Day 5 · Timberline Lodge</strong><br>WPA 1937 · The Shining · 6,000 ft'],
+  [45.5762,-122.1158,'MF', 5,'Multnomah Falls','<strong>Day 5 · Multnomah Falls</strong><br>620 ft · Permit required'],
+  [46.8637,-122.7765,'TE', 5,'Tenino','<strong>Day 5 · Overnight</strong><br>Offut Lake Resort, Tenino WA'],
+  [46.7681,-121.7305,'RL', 6,'Reflection Lakes','<strong>Day 6 · Reflection Lakes</strong><br>Rainier mirror — before 9 AM'],
+  [46.7861,-121.7365,'PA', 6,'Paradise','<strong>Day 6 · Paradise, Mt. Rainier</strong><br>5,400 ft · Leave by 11 AM!'],
+  [47.6062,-122.3321,'SEA',0,'Seattle','<strong>Destination: Seattle</strong><br>Arrive Sep 7, 3:30–4:30 PM 🎉']
+];
+
+stops.forEach(function(s) {
+  var color = colors[s[3]];
+  var marker = L.marker([s[0], s[1]], {icon: makePin(s[2], color)});
+  marker.bindPopup(s[5], {maxWidth: 200});
+  marker.addTo(map);
+});
+
+// Fit to all stops
+var allCoords = stops.map(function(s){return[s[0],s[1]]});
+map.fitBounds(L.latLngBounds(allCoords), {padding:[20,20]});
+
+// Day nav tab click scrolling
+document.querySelectorAll('.day-tab').forEach(function(tab) {
+  tab.addEventListener('click', function() {
+    document.querySelectorAll('.day-tab').forEach(function(t){t.classList.remove('active')});
+    tab.classList.add('active');
+  });
+});
+</script>
 </body>
 </html>
